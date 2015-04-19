@@ -1,0 +1,521 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/*
+ * FrmPO_Opening.java
+ *
+ * Created on Jul 15, 2010, 8:40:11 AM
+ */
+
+package pembelian;
+
+import apotek.DLgLookup;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.FocusTraversalPolicy;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFormattedTextField;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
+import main.GeneralFunction;
+
+/**
+ *
+ * @author ustadho
+ */
+public class FrmPO_Opening extends javax.swing.JInternalFrame {
+    private Connection conn;
+    GeneralFunction fn;
+    MyKeyListener kListener=new MyKeyListener();
+    boolean stOpen=false;
+
+
+    /** Creates new form FrmPO_Opening */
+    public FrmPO_Opening() {
+        initComponents();
+        tblPR.getTableHeader().setFont(tblPR.getFont());
+        tblPR.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                btnOpenPO.setEnabled(tblPR.getSelectedRow()>=0);
+            }
+        });
+
+    }
+
+    public void setStatusOpen(boolean b){
+        this.stOpen=b;
+    }
+
+    public void setConn(Connection con){
+        this.conn=con;
+    }
+
+    private void udfLoadPO(){
+        try {
+            String s = "select * from fn_phar_po_open_list('" + txtSearch.getText() + "', " + chkConsignment.isSelected() + ", "+stOpen+") " +
+                    "as (no_po varchar, flag_trx varchar, tanggal date, " +
+                    "kode_supp varchar, supplier varchar, netto double precision, closed boolean, no_gr varchar)";
+            ResultSet rs = conn.createStatement().executeQuery(s);
+            ((DefaultTableModel)tblPR.getModel()).setNumRows(0);
+            while(rs.next()){
+                ((DefaultTableModel)tblPR.getModel()).addRow(new Object[]{
+                    rs.getString("no_po"),
+                    rs.getString("flag_trx"),
+                    rs.getDate("tanggal"),
+                    rs.getString("kode_supp"),
+                    rs.getString("supplier"),
+                    rs.getDouble("netto"),
+                    rs.getString("no_gr"),
+                    rs.getBoolean("closed")
+                });
+            }
+            rs.close();
+            if(tblPR.getRowCount()>0)
+                tblPR.setRowSelectionInterval(0, 0);
+
+            tblPR.setModel((DefaultTableModel)fn.autoResizeColWidth(tblPR, (DefaultTableModel)tblPR.getModel()).getModel());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
+    }
+
+    private void udfInitForm(){
+        fn=new GeneralFunction(conn);
+        fn.addKeyListenerInContainer(jPanel1, kListener, txtFocusListener);
+        fn.addKeyListenerInContainer(jPanel2, kListener, txtFocusListener);
+        tblPR.addKeyListener(kListener);
+        fn.addKeyListenerInContainer(jPanel3, kListener, txtFocusListener);
+        jLabel3.setText(stOpen? "Open Date": "Closed Date");
+        try {
+            ResultSet rs = conn.createStatement().executeQuery("select to_char(current_date, 'dd/MM/yyyy')");
+            rs.next();
+            txtDateOpen.setText(rs.getString(1));
+            rs.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(FrmPO_Opening.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        btnOpenPO.setText(stOpen? "Open PO Manual": "Close PO Manual");
+        udfLoadPO();
+
+    }
+
+    private void udfViewPODetail(){
+        int iRow=tblPR.getSelectedRow();
+        if(iRow>=0){
+            String sNoPo=tblPR.getValueAt(iRow, 0).toString();
+            String sQry="select * from fn_phar_po_detail('"+sNoPo+"') as (\"ProductID\" varchar, \"Keterangan\" varchar, \"Uom\" varchar, " +
+                    "\"Qty\" numeric, \"Unit Price\" numeric, \"Disc %\" double precision, \"Vat\" real, " +
+                    "\"Ext Price\" double precision, \"No. PR\" varchar)";
+            
+            DLgLookup d1=new DLgLookup(JOptionPane.getFrameForComponent(this), true);
+            d1.hideAtas();
+            d1.setTitle("Detail PO# : "+sNoPo);
+            d1.udfLoad(conn, sQry, "", null);
+            d1.setVisible(true);
+
+        }
+    }
+
+    
+
+    /** This method is called from within the constructor to
+     * initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        txtSearch = new javax.swing.JTextField();
+        chkConsignment = new javax.swing.JCheckBox();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        tblPR = new org.jdesktop.swingx.JXTable();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        txtDateOpen = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        txtReason = new javax.swing.JTextField();
+        jPanel3 = new javax.swing.JPanel();
+        btnOpenPO = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        btnViewDetail = new javax.swing.JButton();
+
+        setClosable(true);
+        setIconifiable(true);
+        setMaximizable(true);
+        setResizable(true);
+        setTitle("Opening Purchase Order");
+        addInternalFrameListener(new javax.swing.event.InternalFrameListener() {
+            public void internalFrameActivated(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameClosed(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameClosing(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameDeactivated(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameDeiconified(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameIconified(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameOpened(javax.swing.event.InternalFrameEvent evt) {
+                formInternalFrameOpened(evt);
+            }
+        });
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Search for Purchase Order"));
+        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 12));
+        jLabel1.setText("PO No.");
+        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 30, 60, 20));
+
+        txtSearch.setFont(new java.awt.Font("Tahoma", 0, 12));
+        txtSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtSearchActionPerformed(evt);
+            }
+        });
+        jPanel1.add(txtSearch, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 30, 190, 20));
+
+        chkConsignment.setFont(new java.awt.Font("Tahoma", 0, 12));
+        chkConsignment.setText("Consignment");
+        jPanel1.add(chkConsignment, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 30, 130, -1));
+
+        tblPR.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "PO No", "Flag", "Tgl. PO", "SupplierID", "Supplier", "Netto", "Good Receipt #", "Closed"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Double.class, java.lang.Double.class, java.lang.Boolean.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tblPR.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        tblPR.setFont(new java.awt.Font("Tahoma", 0, 12));
+        jScrollPane3.setViewportView(tblPR);
+
+        jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 12));
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel2.setText(":");
+        jPanel2.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 10, 10, 20));
+
+        txtDateOpen.setFont(new java.awt.Font("Tahoma", 0, 12));
+        txtDateOpen.setDisabledTextColor(new java.awt.Color(0, 0, 0));
+        txtDateOpen.setEnabled(false);
+        jPanel2.add(txtDateOpen, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 10, 90, 20));
+
+        jLabel3.setFont(new java.awt.Font("Tahoma", 0, 12));
+        jLabel3.setText("Open Date");
+        jPanel2.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 70, 20));
+
+        jLabel4.setFont(new java.awt.Font("Tahoma", 0, 12));
+        jLabel4.setText("Reason");
+        jPanel2.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 30, 70, 20));
+
+        jLabel5.setFont(new java.awt.Font("Tahoma", 0, 12));
+        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel5.setText(":");
+        jPanel2.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 30, 10, 20));
+
+        txtReason.setFont(new java.awt.Font("Tahoma", 0, 12));
+        jPanel2.add(txtReason, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 30, 460, 20));
+
+        jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        btnOpenPO.setText("Open PO Manual");
+        btnOpenPO.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOpenPOActionPerformed(evt);
+            }
+        });
+        jPanel3.add(btnOpenPO, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 10, 200, -1));
+
+        jButton2.setText("Close");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+        jPanel3.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 10, 80, -1));
+
+        btnViewDetail.setText("View Detail");
+        btnViewDetail.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnViewDetailActionPerformed(evt);
+            }
+        });
+        jPanel3.add(btnViewDetail, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 10, 110, -1));
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(10, 10, 10)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 640, Short.MAX_VALUE)
+                .addGap(16, 16, 16))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(10, 10, 10)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 640, Short.MAX_VALUE)
+                .addGap(16, 16, 16))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 640, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 640, Short.MAX_VALUE)))
+                .addGap(16, 16, 16))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(11, 11, 11)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE)
+                .addGap(10, 10, 10)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void txtSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSearchActionPerformed
+        udfLoadPO();
+    }//GEN-LAST:event_txtSearchActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        this.dispose();
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void formInternalFrameOpened(javax.swing.event.InternalFrameEvent evt) {//GEN-FIRST:event_formInternalFrameOpened
+        udfInitForm();
+    }//GEN-LAST:event_formInternalFrameOpened
+
+    private void btnViewDetailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewDetailActionPerformed
+        udfViewPODetail();
+    }//GEN-LAST:event_btnViewDetailActionPerformed
+
+    private void btnOpenPOActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenPOActionPerformed
+        udfOpenClose();
+    }//GEN-LAST:event_btnOpenPOActionPerformed
+
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnOpenPO;
+    private javax.swing.JButton btnViewDetail;
+    private javax.swing.JCheckBox chkConsignment;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JScrollPane jScrollPane3;
+    private org.jdesktop.swingx.JXTable tblPR;
+    private javax.swing.JTextField txtDateOpen;
+    private javax.swing.JTextField txtReason;
+    private javax.swing.JTextField txtSearch;
+    // End of variables declaration//GEN-END:variables
+
+    public class MyKeyListener extends KeyAdapter {
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            Component ct = KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+            int keyKode = evt.getKeyCode();
+            switch(keyKode){
+                case KeyEvent.VK_INSERT:{
+                //    udfNew();
+
+                    break;
+                }
+               case KeyEvent.VK_ENTER : {
+                    if(!(ct instanceof JTable))                    {
+                        if (!fn.isListVisible()){
+                            Component c = findNextFocus();
+                            if (c==null) return;
+                            c.requestFocus();
+                        }else{
+                            fn.lstRequestFocus();
+                        }
+                    }
+                    break;
+                }
+                case KeyEvent.VK_DOWN: {
+                    if(!(ct.getClass().getSimpleName().equalsIgnoreCase("JXTABLE")))
+                        {
+                            if (!fn.isListVisible()){
+                                Component c = findNextFocus();
+                                if (c==null) return;
+                                c.requestFocus();
+                            }else{
+                                fn.lstRequestFocus();
+                            }
+                            break;
+                    }
+                }
+
+                case KeyEvent.VK_UP: {
+                    if(!(ct.getClass().getSimpleName().equalsIgnoreCase("JXTABLE")))
+                    {
+                        Component c = findPrevFocus();
+                        c.requestFocus();
+                    }
+                    break;
+                }
+                case KeyEvent.VK_DELETE:{
+                    if(evt.getSource().equals(tblPR) && tblPR.getSelectedRow()>=0){
+                        ((DefaultTableModel)tblPR.getModel()).removeRow(tblPR.getSelectedRow());
+                    }
+                    break;
+                }
+                case KeyEvent.VK_ESCAPE:{
+                    if(JOptionPane.showConfirmDialog(null,"Anda Yakin Untuk Keluar?",
+                            "SHS Pharmacy",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
+                        dispose();
+                    }
+                    break;
+                }
+                case KeyEvent.VK_F2:{
+                    break;
+                }
+
+            }
+        }
+
+//        @Override
+//        public void keyReleased(KeyEvent evt){
+//            if(evt.getSource().equals(txtDisc)||evt.getSource().equals(txtQty)||evt.getSource().equals(txtUnitPrice))
+//                GeneralFunction.keyTyped(evt);
+//        }
+
+        public Component findNextFocus() {
+            // Find focus owner
+            Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+            Container root = c == null ? null : c.getFocusCycleRootAncestor();
+
+            if (root != null) {
+                FocusTraversalPolicy policy = root.getFocusTraversalPolicy();
+                Component nextFocus = policy.getComponentAfter(root, c);
+                if (nextFocus == null) {
+                    nextFocus = policy.getDefaultComponent(root);
+                }
+                return nextFocus;
+            }
+            return null;
+        }
+
+        public Component findPrevFocus() {
+            // Find focus owner
+            Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+            Container root = c == null ? null : c.getFocusCycleRootAncestor();
+
+            if (root != null) {
+                FocusTraversalPolicy policy = root.getFocusTraversalPolicy();
+                Component prevFocus = policy.getComponentBefore(root, c);
+                if (prevFocus == null) {
+                    prevFocus = policy.getDefaultComponent(root);
+                }
+                return prevFocus;
+            }
+            return null;
+        }
+    }
+
+    private FocusListener txtFocusListener=new FocusListener() {
+        public void focusGained(FocusEvent e) {
+            if(e.getSource() instanceof JTextField || e.getSource() instanceof JFormattedTextField){
+                ((JTextField)e.getSource()).setBackground(Color.YELLOW);
+////
+//                if(e.getSource().equals(ustTextField)||e.getSource().equals(txtUnitPrice)||e.getSource().equals(txtDisc)){
+                    ((JTextField)e.getSource()).setSelectionStart(0);
+                    ((JTextField)e.getSource()).setSelectionEnd(((JTextField)e.getSource()).getText().length());
+//                }
+//                else if(e.getSource().equals(txtDokter)){
+//////                    txtDokter.setEnabled(isJasaMedis);
+////                }
+            }
+        }
+
+        public void focusLost(FocusEvent e) {
+            if(e.getSource().getClass().getSimpleName().equalsIgnoreCase("JTextField")||
+                    e.getSource().getClass().getSimpleName().equalsIgnoreCase("JFormattedTextField")){
+                ((JTextField)e.getSource()).setBackground(Color.WHITE);
+                if(e.getSource().equals(txtSearch)){
+                   udfLoadPO();
+                }
+            }
+        }
+    } ;
+
+    private void udfOpenClose(){
+
+        if(txtReason.getText().trim().length()==0){
+            JOptionPane.showMessageDialog(this, "Silakan masukkan reason terlebih dulu!");
+            txtReason.requestFocus();
+            return;
+        }
+
+        try{
+            conn.setAutoCommit(false);
+            int i=conn.createStatement().executeUpdate("Update phar_po set closed="+!stOpen+", " +
+                    (stOpen? "open_reason='"+txtReason.getText()+"', open_date=now() ": "") +
+                    (!stOpen? "closed_reason='"+txtReason.getText()+"', date_closed=now() ": "") +
+                    "where no_po='"+tblPR.getValueAt(tblPR.getSelectedRow(), tblPR.getColumnModel().getColumnIndex("PO No")).toString()+"'");
+
+            conn.setAutoCommit(true);
+            JOptionPane.showMessageDialog(this, (stOpen? "Open" : "Close")+" PO Sukses!" );
+            udfLoadPO();
+            txtReason.setText("");
+
+        }catch(SQLException se){
+            JOptionPane.showMessageDialog(this, se.getMessage());
+        }
+    }
+}

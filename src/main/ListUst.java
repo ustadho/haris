@@ -1,0 +1,327 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package main;
+
+import java.awt.event.KeyEvent;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.JWindow;
+
+/**
+ *
+ * @author Administrator
+ */
+public class ListUst extends JWindow{
+    static Connection con;
+    private ResultSet rs;
+    private String sQuery;
+    private Object[] oResult;
+    private javax.swing.table.DefaultTableModel myModel;
+    private javax.swing.JTextField txtCari;
+    private javax.swing.JLabel[] lblDes;
+    private javax.swing.JComponent[] compDes;
+    private javax.swing.JTextField resultString;
+    private int iRowCount = 0;
+    //private javax.swing.JTextField txtCari;
+    private int iPosRow = 0;
+    /** Creates new form ListRsbm */
+    public ListUst() {
+        initComponents();
+        setFocusable(true);
+        requestFocusInWindow();
+   }
+
+    public ListUst(String newQry)  throws SQLException {
+        initComponents();
+        setSQuery(newQry);
+        tblList.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        
+    }
+    
+    public void udfRemoveColumn(int col){
+        tblList.removeColumn(tblList.getColumnModel().getColumn(col));
+    }
+    
+    public void setRs(ResultSet newRS)  throws SQLException {
+        rs = newRS;
+        setMyModel(rs);
+    }
+    
+    
+    public ResultSet getRs() {
+        return rs;
+    }
+    
+    public void setSQuery(String newQry) throws SQLException{
+        sQuery = newQry;        
+        Statement st = con.createStatement();
+        rs = st.executeQuery(sQuery);
+        setMyModel(rs);
+        rs.close();
+        st.close();
+    }
+    
+    public String getSQuery(){
+        return sQuery;
+    }
+    
+    public void setLblDes(javax.swing.JLabel[] newlbl){
+        lblDes = newlbl;
+    }
+   
+    public void setCompDes(javax.swing.JComponent[] newComp){
+	compDes = newComp;
+    }
+    
+    public void setTxtCari(javax.swing.JTextField newTxt){
+        txtCari = newTxt;
+    }
+    
+    public void setResultDesc(javax.swing.JTextField newtext){
+        resultString=newtext;
+    }
+    
+    public int getIRowCount(){
+        return iRowCount;
+    }
+    
+    public int getRowHeight(){
+        return tblList.getRowHeight();
+    }
+    
+    
+    public void setMyModel(ResultSet newRS)  throws SQLException {
+        myModel = new javax.swing.table.DefaultTableModel();
+        tblList.setModel(myModel);
+            
+            for(int i=1;i <= rs.getMetaData().getColumnCount();i++) {
+                myModel.addColumn(rs.getMetaData().getColumnName(i));
+                
+            }
+            iRowCount = 0;
+            while (newRS.next()) {
+                Object arObj[] = new Object[newRS.getMetaData().getColumnCount()];
+                for(int i=1;i <= newRS.getMetaData().getColumnCount();i++) {
+                    if(newRS.getObject(i) != null){
+                        arObj[i-1]=newRS.getObject(i);
+                    } else {                        
+                        arObj[i-1]=new Object();
+                    }
+                }
+                myModel.addRow(arObj);
+                iRowCount++;
+            }            
+            if (tblList.getRowCount()>0) {
+                tblList.setRowSelectionInterval(0,0) ;
+            } else{
+                this.setVisible(false);
+            }
+            newRS.close();    
+            //jScrollPane1.setBounds(jScrollPane1.getX(),jScrollPane1.getY(),jScrollPane1.getWidth(),iRowCount*tblList.getRowHeight());
+            setBounds(getX(),getY(), getWidth(),(iRowCount+2)*tblList.getRowHeight());
+}
+    
+    public Object[] getOResult() {
+        Object[] oSelected =new Object[myModel.getColumnCount()];
+        
+        if (myModel.getRowCount()>0) {        
+            if (iPosRow == 0) {iPosRow =tblList.getSelectedRow();}
+            if (iPosRow>myModel.getRowCount()) {iPosRow=0;}
+            for(int i=1;i <= myModel.getColumnCount();i++) {
+                oSelected[i-1] = myModel.getValueAt(iPosRow, i-1);
+            }
+        }
+        oResult = oSelected;
+        return oResult;
+    }
+    
+    public JTextField getTxtCari(){
+        return txtCari;
+    }
+
+    void setRemoveCol(int i) {
+        tblList.removeColumn(tblList.getColumnModel().getColumn(i));
+    }
+    
+    void udfSetSelectedValue(){
+        
+        if(iPosRow>=0){
+            for (int i=0;i<lblDes.length;i++){
+                lblDes[i].setText(myModel.getValueAt(iPosRow, i+1).toString());                
+            }
+        }
+    }
+    
+    public JTable getTable(){
+        return tblList;
+    }
+    
+    /** This method is called from within the constructor to
+     * initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
+     */
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
+    private void initComponents() {
+
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblList = new javax.swing.JTable();
+
+        setAlwaysOnTop(true);
+//        setResizable(false);
+//        setState(2);
+//        this.setUndecorated(true);
+        
+        addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                formFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                formFocusLost(evt);
+            }
+        });
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowActivated(java.awt.event.WindowEvent evt) {
+                formWindowActivated(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
+
+        tblList.setAutoCreateRowSorter(true);
+        tblList.setForeground(new java.awt.Color(0, 0, 153));
+        tblList.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        tblList.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        tblList.setSelectionBackground(new java.awt.Color(0, 51, 255));
+        tblList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblListMouseClicked(evt);
+            }
+        });
+        tblList.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                tblListFocusLost(evt);
+            }
+        });
+        tblList.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                tblListKeyPressed(evt);
+            }
+        });
+        jScrollPane1.setViewportView(tblList);
+
+        getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);
+    }// </editor-fold>                        
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {                                  
+        txtCari.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtCariKeyReleased(evt);
+            }
+        });
+    }                                 
+
+    private void formWindowActivated(java.awt.event.WindowEvent evt) {                                     
+// TODO add your handling code here:
+    }                                    
+
+    private void formFocusLost(java.awt.event.FocusEvent evt) {                               
+      
+    }                              
+
+    private void tblListFocusLost(java.awt.event.FocusEvent evt) {                                  
+//        this.setVisible(false);
+    }                                 
+
+    private void tblListMouseClicked(java.awt.event.MouseEvent evt) {                                     
+        //if (evt.getClickCount()==2){
+            iPosRow =tblList.getSelectedRow();
+            this.setVisible(false);
+            txtCari.setText(myModel.getValueAt(iPosRow, 0).toString());                                      
+            //if (resultString.getText().equalsIgnoreCase("")){
+            //    resultString.setText(tblList.getValueAt(iPosRow, 1).toString());
+            //}
+            txtCari.requestFocus();
+            for (int i=0;i<lblDes.length;i++){
+                lblDes[i].setText(myModel.getValueAt(iPosRow, i+1).toString());                
+            }
+
+	    //for (int i=0;i<compDes.length;i++){
+            //    compDes[i]..setText(tblList.getValueAt(iPosRow, i+1).toString());
+           // }
+	    
+	    
+        //    System.out.println(evt.getClickCount());
+        //}
+        //System.out.println(evt.getModifiersExText(1));
+        //System.out.println(evt.getModifiersExText(2));
+        //System.out.println(evt.getModifiersExText(3));
+    }                                    
+
+    private void tblListKeyPressed(java.awt.event.KeyEvent evt) {                                   
+        if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {                       
+          //  getOResult();
+            
+            iPosRow =tblList.getSelectedRow();
+            this.setVisible(false);
+            txtCari.setText(myModel.getValueAt(tblList.getSelectedRow(), 0).toString());                            
+            //if (resultString.getText().equalsIgnoreCase("")){
+            //    resultString.setText(tblList.getValueAt(tblList.getSelectedRow(), 1).toString());            
+            //}
+            txtCari.requestFocus();           
+            if(lblDes.length>0){
+                for (int i=0;i<lblDes.length;i++){
+                    lblDes[i].setText(myModel.getValueAt(iPosRow, i+1).toString());                
+                }
+            }
+        }else if(evt.getKeyCode()==KeyEvent.VK_UP && tblList.getSelectedRow()==0){
+            txtCari.requestFocus();
+        }         
+        
+    }                                  
+
+    private void formFocusGained(java.awt.event.FocusEvent evt) {                                 
+        tblList.requestFocus();
+    }                                
+    
+    public void setColWidth(int ColIndex, int ColWidth) {                        
+        tblList.getColumnModel().getColumn(ColIndex).setPreferredWidth(ColWidth);
+    }
+ private void txtCariKeyReleased(java.awt.event.KeyEvent evt) {
+//     if(evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER){
+//            iPosRow =tblList.getSelectedRow();
+//            this.setVisible(false);
+//            txtCari.setText(tblList.getValueAt(tblList.getSelectedRow(), 0).toString());                            
+//            txtCari.requestFocus();            
+//            for (int i=0;i<lblDes.length;i++){
+//                lblDes[i].setText(tblList.getValueAt(iPosRow, i+1).toString());                
+//            }         
+//     }
+
+ }
+    // Variables declaration - do not modify                     
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblList;
+    // End of variables declaration                   
+
+    
+    
+}

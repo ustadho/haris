@@ -1,0 +1,351 @@
+/*
+ * DlgList.java
+ *
+ * Created on December 29, 2006, 10:38 AM
+ */
+
+package apotek;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.sql.*;
+/**
+ *
+ * @author  root
+ */
+public class DlgList extends javax.swing.JDialog {
+   static Connection con;
+    private ResultSet rs;
+    private String sQuery;
+    private Object[] oResult;
+    private javax.swing.table.DefaultTableModel myModel;
+    private javax.swing.JTextField txtCari;
+    private javax.swing.JLabel[] lblDes;
+    private javax.swing.JTextField[] txtDes;
+    private javax.swing.JComponent[] compDes;
+    private javax.swing.JTextField resultString;
+    private int iRowCount = 0;
+    //private javax.swing.JTextField txtCari;
+    private int iPosRow = 0;
+    
+    /** Creates new form DlgList */
+    public DlgList(java.awt.Frame parent, boolean modal) {
+        super(parent, modal);
+        initComponents();
+        tblList.getTableHeader().setReorderingAllowed(false);
+        
+        this.addKeyListener(new MyKeyListener());
+        tblList.addKeyListener(new MyKeyListener());
+        jScrollPane1.addKeyListener(new MyKeyListener());
+    }
+    
+    public class MyKeyListener extends KeyAdapter {
+        public void keyPressed(KeyEvent evt) {
+            int keyKode = evt.getKeyCode();
+            switch(keyKode){
+                case KeyEvent.VK_ENTER : {
+		    udfSelected();
+		    break;
+		}
+                case KeyEvent.VK_UP : {
+		    if(tblList.getSelectedRow()==0){
+                        txtCari.requestFocusInWindow();
+                        txtCari.requestFocus();
+                    }
+		    break;
+		}
+                
+                case KeyEvent.VK_ESCAPE: {
+                    dispose();
+                    break;
+                }
+                
+             }
+        }
+    }
+    
+    public void setRs(ResultSet newRS)  throws SQLException {
+        rs = newRS;
+        setMyModel(rs);
+    }
+    
+    public void setConn(Connection con){
+        this.con=con;
+    }
+    
+    public ResultSet getRs() {
+        return rs;
+    }
+    
+    public void setSQuery(String newQry) throws SQLException{
+        sQuery = newQry;        
+        Statement st = con.createStatement();
+        rs = st.executeQuery(sQuery);
+        setMyModel(rs);
+        rs.close();
+        st.close();
+    }
+    
+    public String getSQuery(){
+        return sQuery;
+    }
+    
+    public void setLblDes(javax.swing.JLabel[] newlbl){
+        lblDes = newlbl;
+    }
+   
+    public void setTxtDes(javax.swing.JTextField[] newTxt){
+        txtDes = newTxt;
+    }
+    
+    public void setCompDes(javax.swing.JComponent[] newComp){
+	compDes = newComp;
+    }
+    
+    public void setTxtCari(javax.swing.JTextField newTxt){
+        txtCari = newTxt;
+    }
+    
+    public void setResultDesc(javax.swing.JTextField newtext){
+        resultString=newtext;
+    }
+    
+    public int getIRowCount(){
+        return iRowCount;
+    }
+    
+    public void setMyModel(ResultSet newRS)  throws SQLException {
+        myModel = new javax.swing.table.DefaultTableModel();
+        tblList.setModel(myModel);
+            
+            for(int i=1;i <= rs.getMetaData().getColumnCount();i++) {
+                myModel.addColumn(rs.getMetaData().getColumnName(i));
+                
+            }
+            iRowCount = 0;
+            while (newRS.next()) {
+                Object arObj[] = new Object[newRS.getMetaData().getColumnCount()];
+                for(int i=1;i <= newRS.getMetaData().getColumnCount();i++) {
+                    if(newRS.getObject(i) != null){
+                        arObj[i-1]=newRS.getObject(i);
+                    } else {                        
+                        arObj[i-1]=new Object();
+                    }
+                }
+                myModel.addRow(arObj);
+                iRowCount++;
+            }            
+            if (tblList.getRowCount()>0) {
+                tblList.setRowSelectionInterval(0,0) ;
+            } else{
+                this.setVisible(false);
+            }
+            newRS.close();    
+}
+    
+    public Object[] getOResult() {
+        Object[] oSelected =new Object[tblList.getColumnCount()];
+        
+        if (tblList.getRowCount()>0) {        
+            if (iPosRow == 0) {iPosRow =tblList.getSelectedRow();}
+            for(int i=1;i <= tblList.getColumnCount();i++) {
+                oSelected[i-1] = tblList.getValueAt(iPosRow, i-1);
+            }
+        }
+        oResult = oSelected;
+        return oResult;
+    }
+    
+    public void setColWidth(int ColIndex, int ColWidth) {                        
+        tblList.getColumnModel().getColumn(ColIndex).setPreferredWidth(ColWidth);
+    }
+    
+    /** This method is called from within the constructor to
+     * initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
+     */
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblList = new javax.swing.JTable();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        setModal(true);
+        setResizable(false);
+        setUndecorated(true);
+        addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                formFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                formFocusLost(evt);
+            }
+        });
+
+        jScrollPane1.setBackground(new java.awt.Color(255, 255, 204));
+        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        jScrollPane1.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jScrollPane1FocusLost(evt);
+            }
+        });
+        jScrollPane1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jScrollPane1MouseClicked(evt);
+            }
+        });
+
+        tblList.setAutoCreateRowSorter(true);
+        tblList.setBackground(new java.awt.Color(224, 255, 232));
+        tblList.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        tblList.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        tblList.setSelectionBackground(new java.awt.Color(0, 51, 255));
+        tblList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblListMouseClicked(evt);
+            }
+        });
+        tblList.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                tblListFocusLost(evt);
+            }
+        });
+        tblList.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                tblListKeyPressed(evt);
+            }
+        });
+        jScrollPane1.setViewportView(tblList);
+
+        getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void formFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_formFocusLost
+        
+    }//GEN-LAST:event_formFocusLost
+
+    private void formFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_formFocusGained
+        tblList.requestFocus();
+    }//GEN-LAST:event_formFocusGained
+
+    private void jScrollPane1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jScrollPane1MouseClicked
+// TODO add your handling code here:
+    }//GEN-LAST:event_jScrollPane1MouseClicked
+
+    private void jScrollPane1FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jScrollPane1FocusLost
+        this.dispose();
+    }//GEN-LAST:event_jScrollPane1FocusLost
+
+    private void tblListMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblListMouseClicked
+//if (evt.getClickCount()==2){
+        iPosRow =tblList.getSelectedRow();
+        this.setVisible(false);
+        txtCari.setText(tblList.getValueAt(iPosRow, 0).toString());
+        //if (resultString.getText().equalsIgnoreCase("")){
+        //    resultString.setText(tblList.getValueAt(iPosRow, 1).toString());
+        //}
+        txtCari.requestFocus();
+        if (lblDes.length>0) {
+            for (int i=0;i<lblDes.length;i++){
+                lblDes[i].setText(tblList.getValueAt(iPosRow, i+1).toString());
+            }
+        }
+        if (lblDes.length>0) {
+            for (int i=0;i<lblDes.length;i++){
+                lblDes[i].setText(tblList.getValueAt(iPosRow, i+1).toString());
+            }
+        }
+        
+        this.dispose();
+        //for (int i=0;i<compDes.length;i++){
+        //    compDes[i]..setText(tblList.getValueAt(iPosRow, i+1).toString());
+        // }
+        
+        
+        //    System.out.println(evt.getClickCount());
+        //}
+        //System.out.println(evt.getModifiersExText(1));
+        //System.out.println(evt.getModifiersExText(2));
+        //System.out.println(evt.getModifiersExText(3));
+    }//GEN-LAST:event_tblListMouseClicked
+
+    private void tblListKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tblListKeyPressed
+        switch (evt.getKeyCode()){
+            case KeyEvent.VK_ENTER:
+                {
+            
+                    iPosRow =tblList.getSelectedRow();
+                    this.setVisible(false);
+                    txtCari.setText(tblList.getValueAt(tblList.getSelectedRow(), 0).toString());
+                    //if (resultString.getText().equalsIgnoreCase("")){
+                    //    resultString.setText(tblList.getValueAt(tblList.getSelectedRow(), 1).toString());
+                    //}
+                    txtCari.requestFocus();
+                    if (lblDes.length >0){
+                        for (int i=0;i<lblDes.length;i++){
+                            lblDes[i].setText(tblList.getValueAt(iPosRow, i+1).toString());
+                        }
+                    }
+
+                    this.dispose();
+                    break;
+            }
+            case KeyEvent.VK_ESCAPE:{
+                this.dispose();
+                break;
+            }
+        }
+    }//GEN-LAST:event_tblListKeyPressed
+
+    private void udfSelected(){
+        iPosRow =tblList.getSelectedRow();
+        this.setVisible(false);
+        txtCari.setText(tblList.getValueAt(tblList.getSelectedRow(), 0).toString());
+        //if (resultString.getText().equalsIgnoreCase("")){
+        //    resultString.setText(tblList.getValueAt(tblList.getSelectedRow(), 1).toString());
+        //}
+        txtCari.requestFocus();
+        if (lblDes.length >0){
+            for (int i=0;i<lblDes.length;i++){
+                lblDes[i].setText(tblList.getValueAt(iPosRow, i+1).toString());
+            }
+        }
+
+        this.dispose();
+
+    }
+    
+    private void tblListFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_tblListFocusLost
+//        this.setVisible(false);
+    }//GEN-LAST:event_tblListFocusLost
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new DlgList(new javax.swing.JFrame(), true).setVisible(true);
+            }
+        });
+    }
+    
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblList;
+    // End of variables declaration//GEN-END:variables
+    
+}
