@@ -10,11 +10,9 @@
  */
 package pembelian;
 
-import apotek.DLgLookup;
 import apotek.DlgLookupItemBeli;
 import apotek.dao.ItemDao;
 import apotek.dao.PembelianDao;
-import apotek.dao.PenjualanDao;
 import com.klinik.model.Barang;
 import com.klinik.model.SuppBarang;
 import main.MainForm;

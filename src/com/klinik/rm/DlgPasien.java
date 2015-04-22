@@ -3,6 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package com.klinik.rm;
 
 import com.klinik.dao.PasienDao;
@@ -11,24 +12,31 @@ import com.klinik.model.Pasien;
 import com.klinik.model.Reservasi;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 /**
  *
- * @author cak-ust
+ * @author faheem
  */
 public class DlgPasien extends javax.swing.JDialog {
     private Object srcForm;
-
+    private Date tglReservasi;
+    private Pasien selectedPasien=null;
+    
     /**
-     * Creates new form DlgPasien
+     * Creates new form NewJDialog
      */
     public DlgPasien(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
+        initComponents();
     }
 
+    public Pasien getSelectedPasien(){
+        return this.selectedPasien;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -38,6 +46,7 @@ public class DlgPasien extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel14 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         txtNorm = new javax.swing.JTextField();
@@ -65,13 +74,15 @@ public class DlgPasien extends javax.swing.JDialog {
         jLabel13 = new javax.swing.JLabel();
         txtTelpKeluarga = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
-        jLabel14 = new javax.swing.JLabel();
         btnSimpan = new javax.swing.JButton();
         btnBatal = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Pasien");
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel14.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+        jLabel14.setText("Pasien");
+        getContentPane().add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 5, 250, 30));
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -156,7 +167,7 @@ public class DlgPasien extends javax.swing.JDialog {
         txtTelpKeluarga.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(txtTelpKeluarga, new org.netbeans.lib.awtextra.AbsoluteConstraints(115, 210, 325, 22));
 
-        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/small/user.png"))); // NOI18N
+        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/small/find.png"))); // NOI18N
         jButton1.setMargin(new java.awt.Insets(0, 0, 0, 0));
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -167,10 +178,6 @@ public class DlgPasien extends javax.swing.JDialog {
 
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 35, 470, 245));
 
-        jLabel14.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
-        jLabel14.setText("Pasien");
-        getContentPane().add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 5, 250, 30));
-
         btnSimpan.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/Icon/32/cd.png"))); // NOI18N
         btnSimpan.setText("Simpan");
         btnSimpan.setMargin(new java.awt.Insets(2, 2, 2, 2));
@@ -179,7 +186,7 @@ public class DlgPasien extends javax.swing.JDialog {
                 btnSimpanActionPerformed(evt);
             }
         });
-        getContentPane().add(btnSimpan, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 285, 110, -1));
+        getContentPane().add(btnSimpan, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 285, 120, -1));
 
         btnBatal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/Icon/32/close.png"))); // NOI18N
         btnBatal.setText("Batal");
@@ -191,13 +198,8 @@ public class DlgPasien extends javax.swing.JDialog {
         });
         getContentPane().add(btnBatal, new org.netbeans.lib.awtextra.AbsoluteConstraints(373, 285, 105, -1));
 
-        setBounds(0, 0, 501, 370);
+        setBounds(0, 0, 502, 371);
     }// </editor-fold>//GEN-END:initComponents
-
-    private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
-        udfSave();
-        
-    }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         DlgLookupPasien d1=new DlgLookupPasien(JOptionPane.getFrameForComponent(this), true);
@@ -216,6 +218,11 @@ public class DlgPasien extends javax.swing.JDialog {
             txtTelpKeluarga.setText(px.getTeleponKeluarga());
         }
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
+        udfSave();
+
+    }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void btnBatalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBatalActionPerformed
         this.dispose();
@@ -295,7 +302,7 @@ public class DlgPasien extends javax.swing.JDialog {
     private javax.swing.JFormattedTextField txtUsiaBl;
     private javax.swing.JFormattedTextField txtUsiaTh;
     // End of variables declaration//GEN-END:variables
-
+    
     private boolean udfCekBeforeSave(){
         btnSimpan.requestFocusInWindow();
         if(txtNama.getText().trim().equalsIgnoreCase("")){
@@ -331,12 +338,9 @@ public class DlgPasien extends javax.swing.JDialog {
             if(srcForm==null){
                 JOptionPane.showMessageDialog(this, "Simpan pasien sukses!");
             }else if(srcForm instanceof FrmReservasi){
-                Reservasi rv=new Reservasi();
-                rv.setPasien(p);
-                rv.setStatus("W");
-                Integer newId=new ReservasiDao().save(rv);
-                ((FrmReservasi)srcForm).udfFilter(newId);
+                this.selectedPasien=p;
             }
+            this.dispose();
         } catch (ParseException ex) {
             Logger.getLogger(DlgPasien.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -346,6 +350,10 @@ public class DlgPasien extends javax.swing.JDialog {
 
     public void setSrcForm(Object aThis) {
         this.srcForm=aThis;
+    }
+
+    public void setTglReservasi(Date date) {
+        this.tglReservasi=date;
     }
     
 }

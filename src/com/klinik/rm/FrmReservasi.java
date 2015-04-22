@@ -298,9 +298,25 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
     private void btnBaruActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBaruActionPerformed
         DlgPasien ps=new DlgPasien(JOptionPane.getFrameForComponent(this), true);
         ps.setSrcForm(this);
+        ps.setTglReservasi(jXDatePicker2.getDate());
         ps.setVisible(true);
+        Pasien px=ps.getSelectedPasien();
         
-        udfFilter(jXTable1.getRowCount()-1);
+        if(px!=null){
+            String sKodeDokter=listDokter.get(cmbDokter.getSelectedIndex()).getKode();
+            if(dao.cekNormExists(sKodeDokter, jXDatePicker2.getDate(), px.getNorm())){
+                if(JOptionPane.showConfirmDialog(this, "Reservasi untuk pasien tersebut hari ini sudah ada!\n"
+                        + "Anda tetap akan melanjutkan?")==JOptionPane.NO_OPTION){
+                    return;
+                }
+            }
+            Reservasi rv=new Reservasi();
+            rv.setKodeDokter(sKodeDokter);
+            rv.setTanggal(jXDatePicker2.getDate());
+            rv.setPasien(px);
+            rv.setStatus("1");
+            udfFilter(dao.save(rv));
+        }
     }//GEN-LAST:event_btnBaruActionPerformed
 
     private void formInternalFrameOpened(javax.swing.event.InternalFrameEvent evt) {//GEN-FIRST:event_formInternalFrameOpened
