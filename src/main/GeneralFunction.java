@@ -25,6 +25,8 @@ import java.awt.print.PrinterJob;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -354,6 +356,34 @@ public class GeneralFunction {
         return hsl;
   }
 
+    public static BigDecimal udfGetBigDecimal(String sNum){
+        BigDecimal hsl=new BigDecimal(BigInteger.ZERO);
+        if(sNum!=null && !sNum.trim().equalsIgnoreCase("")){
+            try{
+                hsl=new BigDecimal(sNum);
+            }catch(NumberFormatException ne){
+                hsl=new BigDecimal(BigInteger.ZERO);
+            }catch(IllegalArgumentException i){
+                hsl=new BigDecimal(BigInteger.ZERO);
+            }
+        }
+        return hsl;
+  }
+    
+    public static BigDecimal udfGetBigDecimal(Object sNum){
+        BigDecimal hsl=new BigDecimal(BigInteger.ZERO);
+        if(sNum!=null && sNum!=null){
+            try{
+                hsl=(BigDecimal)sNum;
+            }catch(NumberFormatException ne){
+                hsl=new BigDecimal(BigInteger.ZERO);
+            }catch(IllegalArgumentException i){
+                hsl=new BigDecimal(BigInteger.ZERO);
+            }
+        }
+        return hsl;
+  }
+    
     public static boolean validateDate( String dateStr, boolean allowPast, String formatStr){
      if (formatStr == null) return false; // or throw some kinda exception, possibly a InvalidArgumentException
 		SimpleDateFormat df = new SimpleDateFormat(formatStr);

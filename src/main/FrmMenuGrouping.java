@@ -258,6 +258,7 @@ public class FrmMenuGrouping extends javax.swing.JInternalFrame {
             if(jTable1.getRowCount() > 0){
                 jTable1.setRowSelectionInterval(0, 0);
                 jTable1.changeSelection(0, 0, false, false);
+                fn.setAutoResizeColWidth(jTable1);
             }
         } catch (SQLException ex) {
             Logger.getLogger(FrmMenuGrouping.class.getName()).log(Level.SEVERE, null, ex);

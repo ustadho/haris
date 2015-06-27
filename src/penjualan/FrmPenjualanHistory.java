@@ -76,7 +76,6 @@ public class FrmPenjualanHistory extends javax.swing.JInternalFrame {
         initComponents();
         aThis=this;
         jXTable1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
             public void valueChanged(ListSelectionEvent e) {
                 int i=jXTable1.getSelectedRow();
                 btnPrintUlang.setEnabled(i>=0);
@@ -161,20 +160,20 @@ public class FrmPenjualanHistory extends javax.swing.JInternalFrame {
     public void udfFilter(){
         try{
             ResultSet rs=conn.createStatement().executeQuery("select s.no_penjualan, s.tanggal, " +
-                    "coalesce(c.nama_pelanggan, s.nama_pelanggan) as nama_cust, " +
+                    "coalesce(c.nama, s.nama_pelanggan) as nama_cust, " +
                     "coalesce(s.total, 0) as sub_total, " +
                     "case when s.koreksi=true then 'K' else '' end as flag_koreksi,"
-                    + "coalesce(s.multi_satuan,false) as multi  " +
+                    + "coalesce(s.multi_satuan,false) as multi, coalesce(s.koreksi_dr,'') as koreksi_dr, coalesce(s.keterangan,'') as keterangan  " +
                     "from penjualan s " +
                     "inner join penjualan_detail d on d.no_penjualan=s.no_penjualan " +
                     "inner join barang i on i.item_code=d.item_code " +
-                    "left join pelanggan c on c.kode_pelanggan=s.kode_pelanggan " +
+                    "left join rm_pasien c on c.norm=s.kode_pelanggan " +
                     "where " + //s.is_koreksi<>true and
                     "to_char(s.tanggal, 'yyyy-MM-dd')>='" + ymd.format(dmy.parse(jFTgl.getText())) + "' " +
                     "and to_char(s.tanggal, 'yyyy-MM-dd')<='" + ymd.format(dmy.parse(jFTglAkhir.getText())) + "' " +
-                    "and (coalesce(c.nama_pelanggan, s.nama_pelanggan)||s.no_penjualan ilike '%"+txtItem.getText()+"%' " +
+                    "and (coalesce(c.nama, s.nama_pelanggan)||s.no_penjualan ilike '%"+txtItem.getText()+"%' " +
                     "or d.item_code||coalesce(i.item_name,'') ilike '%"+txtItem.getText()+"%') " +
-                    "group by s.no_penjualan, s.tanggal, coalesce(c.nama_pelanggan, s.nama_pelanggan) , flag_koreksi, multi " +
+                    "group by s.no_penjualan, s.tanggal, coalesce(c.nama, s.nama_pelanggan) , flag_koreksi, multi " +
                     "order by s.tanggal");
 
             ((DefaultTableModel)jXTable1.getModel()).setNumRows(0);
@@ -186,6 +185,7 @@ public class FrmPenjualanHistory extends javax.swing.JInternalFrame {
                     rs.getString("nama_cust"),
                     rs.getDouble("sub_total"),
                     rs.getString("flag_koreksi"),
+                    rs.getString("koreksi_dr").length()>0? "Koreksi dari: '"+rs.getString("koreksi_dr")+"'": rs.getString("keterangan"),
                     rs.getBoolean("multi")
 
                 });
@@ -348,14 +348,14 @@ public class FrmPenjualanHistory extends javax.swing.JInternalFrame {
 
             },
             new String [] {
-                "No. Trans.", "Tanggal", "Customer", "Total", "Flag", "Multi"
+                "No. Trans.", "Tanggal", "Pasien", "Total", "Flag", "Keterangan", "Multi"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Double.class, java.lang.Object.class, java.lang.Boolean.class
+                java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Double.class, java.lang.Object.class, java.lang.Object.class, java.lang.Boolean.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false
+                false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -452,22 +452,21 @@ public class FrmPenjualanHistory extends javax.swing.JInternalFrame {
                 .addGap(10, 10, 10)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 370, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 370, Short.MAX_VALUE)
                         .addGap(10, 10, 10)
-                        .addComponent(lblTotal2, javax.swing.GroupLayout.DEFAULT_SIZE, 490, Short.MAX_VALUE)
-                        .addGap(10, 10, 10))
+                        .addComponent(lblTotal2, javax.swing.GroupLayout.PREFERRED_SIZE, 490, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 370, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 370, Short.MAX_VALUE)
                         .addGap(8, 8, 8)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 490, Short.MAX_VALUE)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 490, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(2, 2, 2)
-                                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
+                                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(10, 10, 10)
-                                .addComponent(lblTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(3, 3, 3)))
-                        .addGap(12, 12, 12))))
+                                .addComponent(lblTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(2, 2, 2)))
+                .addGap(20, 20, 20))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -477,7 +476,7 @@ public class FrmPenjualanHistory extends javax.swing.JInternalFrame {
                     .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblTotal2, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 454, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 457, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(3, 3, 3)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE)

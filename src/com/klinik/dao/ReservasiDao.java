@@ -7,6 +7,7 @@
 package com.klinik.dao;
 
 import apotek.Main;
+import com.klinik.model.Pasien;
 import com.klinik.model.Reservasi;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +16,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import main.MainForm;
+import org.jdesktop.swingx.JXDatePicker;
 
 /**
  *
@@ -86,7 +88,7 @@ public class ReservasiDao {
     }
     
     public void batal(Integer id){
-        String SQL_UPD="UPDATE rm_reservasi set batal=true, user_batal=?, time_batal=now(), status='C' "
+        String SQL_UPD="UPDATE rm_reservasi set batal=true, user_batal=?, time_batal=now(), status='4' "
                 + "where id=?";
         try {
             PreparedStatement ps=Main.conn.prepareStatement(SQL_UPD);
@@ -136,4 +138,59 @@ public class ReservasiDao {
         }
         return st;
     }
+    
+    public Reservasi findOne(Integer id){
+        Reservasi rv=null;
+        String SQL="SELECT id, tanggal, kode_dokter, norm, nama, jenis_kelamin, tempat_lahir, \n" +
+                    "       tgl_lahir, alamat_domisili, telepon, hp, nama_keluarga, telp_keluarga,"
+                    + "case status when '1' then 'Reservasi' "
+                    + "                 when '2' then 'Registrasi' "
+                    + "                 when '3' then 'Selesai' "
+                    + "                 when '4' then 'Batal' "
+                    + "else '' end as status, coalesce(title,'') as title\n" +
+                    "FROM rm_reservasi where id="+id;
+        try {
+            ResultSet rs=Main.conn.createStatement().executeQuery(SQL);
+            if(rs.next()){
+                Pasien px=new Pasien();
+                px.setNorm(rs.getString("norm"));
+                px.setNama(rs.getString("nama"));
+                px.setJenisKelamin(rs.getString("jenis_kelamin"));
+                px.setTempatLahir(rs.getString("tempat_lahir"));
+                px.setTanggalLahir(rs.getDate("tgl_lahir"));
+                px.setAlamatDomisili(rs.getString("alamat_domisili"));
+                px.setTelepon(rs.getString("telepon"));
+                px.setHp(rs.getString("hp"));
+                px.setNamaKeluarga(rs.getString("nama_keluarga"));
+                px.setTeleponKeluarga(rs.getString("telp_keluarga"));
+                
+                rv=new Reservasi();
+                rv.setId(id);
+                rv.setKodeDokter(rs.getString("kode_dokter"));
+                rv.setPasien(px);
+                rv.setTanggal(rs.getDate("tanggal"));
+                rv.setStatus(rs.getString("status"));
+                rv.setTitle(rs.getString("title"));
+            }
+            rs.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(ReservasiDao.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return rv;
+    }
+
+    public void updateStatus(Integer id, String st, String norm) {
+        String SQL="update rm_reservasi set status=?, norm=? where id=?";
+        try {
+            PreparedStatement ps=Main.conn.prepareStatement(SQL);
+            ps.setString(1, st);
+            ps.setString(2, norm);
+            ps.setInt(3, id);
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(ReservasiDao.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
 }

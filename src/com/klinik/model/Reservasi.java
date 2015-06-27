@@ -23,6 +23,7 @@ public class Reservasi {
     private String status; //'F --> Finised, W -> Waiting, C --> Cancel';
     private String kodeDokter;
     private Date tanggal;
+    private String title;
     
     public Integer getId() {
         return id;
@@ -102,6 +103,14 @@ public class Reservasi {
 
     public void setTanggal(Date tanggal) {
         this.tanggal = tanggal;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
     
     

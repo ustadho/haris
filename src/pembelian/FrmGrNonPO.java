@@ -928,7 +928,7 @@ public class FrmGrNonPO extends javax.swing.JInternalFrame {
     }
 
     private void udfLoadItemDetail() {
-        Barang i = itemDao.getBarangByKode(txtProductId.getText());
+        Barang i = itemDao.getBarangByKode(txtProductId.getText(), "KLINIK");
         if (i != null) {
             lblNamaBarang.setText(i.getNamaPaten());
             lblSatuanKecil.setText(satuanDao.findById(i.getSatuanKecil()).getNama());

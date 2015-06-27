@@ -58,7 +58,9 @@ public class DlgPembayaran extends javax.swing.JDialog {
     }
 
     private void hitung(){
-        double total =fn.udfGetDouble(txtGrandTotal.getText())-fn.udfGetDouble(txtDiskon.getText());
+        double total =fn.udfGetDouble(txtTotal.getText())-fn.udfGetDouble(txtDiskon.getText());
+        lblNettTotal.setText(fn.intFmt.format(total));
+//        
         double kredit= total-fn.udfGetDouble(txtTunai.getText())>0 ? total-fn.udfGetDouble(txtTunai.getText()): 0;
         double kembali=fn.udfGetDouble(txtTunai.getText())-total>0 ? fn.udfGetDouble(txtTunai.getText())-total: 0;
         txtKredit.setText(fn.intFmt.format(kredit));
@@ -71,8 +73,8 @@ public class DlgPembayaran extends javax.swing.JDialog {
     }
 
     public void setTotal(double total ){
-        txtGrandTotal.setText(fn.intFmt.format(total));
-        txtTunai.setText(fn.intFmt.format(total));
+        txtTotal.setText(fn.intFmt.format(total));
+        
     }
 
     public String getJenisBayar() {
@@ -295,12 +297,14 @@ public class DlgPembayaran extends javax.swing.JDialog {
         jSeparator1 = new javax.swing.JSeparator();
         jLabel5 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        txtGrandTotal = new javax.swing.JTextField();
+        txtTotal = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
         txtDiskon = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         btnSimpan = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        lblNettTotal = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setUndecorated(true);
@@ -371,35 +375,40 @@ public class DlgPembayaran extends javax.swing.JDialog {
 
         jLabel7.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel7.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel7.setText("Grand Total");
+        jLabel7.setText("Total");
         jLabel7.setName("jLabel7"); // NOI18N
-        jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 45, 110, 20));
+        jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, 110, 20));
 
-        txtGrandTotal.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        txtGrandTotal.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        txtGrandTotal.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        txtGrandTotal.setDisabledTextColor(new java.awt.Color(0, 0, 0));
-        txtGrandTotal.setEnabled(false);
-        txtGrandTotal.setName("txtGrandTotal"); // NOI18N
-        jPanel1.add(txtGrandTotal, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 45, 140, 20));
+        txtTotal.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtTotal.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        txtTotal.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        txtTotal.setDisabledTextColor(new java.awt.Color(0, 0, 0));
+        txtTotal.setEnabled(false);
+        txtTotal.setName("txtTotal"); // NOI18N
+        jPanel1.add(txtTotal, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 20, 140, 20));
 
         jLabel8.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel8.setForeground(new java.awt.Color(255, 255, 255));
         jLabel8.setText("Diskon (Rp.)");
         jLabel8.setName("jLabel8"); // NOI18N
-        jPanel1.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 70, 110, 20));
+        jPanel1.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 45, 110, 20));
 
         txtDiskon.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtDiskon.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         txtDiskon.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         txtDiskon.setDisabledTextColor(new java.awt.Color(0, 0, 0));
         txtDiskon.setName("txtDiskon"); // NOI18N
+        txtDiskon.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtDiskonActionPerformed(evt);
+            }
+        });
         txtDiskon.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 txtDiskonKeyReleased(evt);
             }
         });
-        jPanel1.add(txtDiskon, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 70, 140, 20));
+        jPanel1.add(txtDiskon, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 45, 140, 20));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/Icon/credit-cards.png"))); // NOI18N
         jLabel1.setName("jLabel1"); // NOI18N
@@ -422,6 +431,20 @@ public class DlgPembayaran extends javax.swing.JDialog {
         jLabel6.setName("jLabel6"); // NOI18N
         jPanel1.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 100, 90, 20));
 
+        jLabel9.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        jLabel9.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel9.setText("Nett Total");
+        jLabel9.setName("jLabel9"); // NOI18N
+        jPanel1.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 70, 110, 20));
+
+        lblNettTotal.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        lblNettTotal.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        lblNettTotal.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        lblNettTotal.setDisabledTextColor(new java.awt.Color(0, 0, 0));
+        lblNettTotal.setEnabled(false);
+        lblNettTotal.setName("lblNettTotal"); // NOI18N
+        jPanel1.add(lblNettTotal, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 70, 140, 20));
+
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 400, 310));
 
         setSize(new java.awt.Dimension(398, 321));
@@ -434,11 +457,13 @@ public class DlgPembayaran extends javax.swing.JDialog {
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
         hitung();
+        txtTunai.setText(lblNettTotal.getText());
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                txtTunai.requestFocus();
                 txtTunai.setSelectionStart(0);
                 txtTunai.setSelectionEnd(txtTunai.getText().length());
+                txtTunai.requestFocus();
+                
             }
         });
         
@@ -449,6 +474,10 @@ public class DlgPembayaran extends javax.swing.JDialog {
             ((FrmPenjualan)srcForm).setDiskon(fn.udfGetDouble(txtDiskon.getText()));
         }
     }//GEN-LAST:event_txtDiskonKeyReleased
+
+    private void txtDiskonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtDiskonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtDiskonActionPerformed
 
     /**
     * @param args the command line arguments
@@ -477,12 +506,14 @@ public class DlgPembayaran extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JTextField lblNettTotal;
     private javax.swing.JTextField txtDiskon;
-    private javax.swing.JTextField txtGrandTotal;
     private javax.swing.JLabel txtKembali;
     private javax.swing.JLabel txtKredit;
+    private javax.swing.JTextField txtTotal;
     private javax.swing.JTextField txtTunai;
     // End of variables declaration//GEN-END:variables
 

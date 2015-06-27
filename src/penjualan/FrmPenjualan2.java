@@ -13,10 +13,10 @@ package penjualan;
 
 import apotek.DlgDokter;
 import apotek.DlgLookupItemJual;
-import apotek.DlgPasien;
 import apotek.JDesktopImage;
 import main.MainForm;
 import apotek.PrintPenjualan2;
+import com.klinik.rm.DlgPasien;
 import comboBox.AutoCompletion;
 import java.awt.Color;
 import java.awt.Component;
@@ -1623,8 +1623,7 @@ public class FrmPenjualan2 extends javax.swing.JFrame {
 
     private void udfNewCustomer() {
         DlgPasien fMaster=new DlgPasien(this, true);
-        fMaster.setTitle("Pasien/ Customer baru");
-        fMaster.setConn(conn);
+        fMaster.setTitle("Pasien/ Pelanggan baru");
         fMaster.setSrcForm(this);
         fMaster.setVisible(true);
         

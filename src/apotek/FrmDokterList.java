@@ -72,14 +72,14 @@ public class FrmDokterList extends javax.swing.JInternalFrame {
     public void udfFilter(String sKode){
         try {
             int posisi=0;
-            String sQry= "SELECT kode_dokter, coalesce(nama,'') as nama_dokter, "
+            String sQry= "SELECT p.kode_dokter, coalesce(p.nama||coalesce(', '||p.gelar_depan||coalesce(p.gelar_belakang,''),''),'') as nama_dokter, "
                     + "coalesce(alamat,'') as alamat, coalesce(telepon,'') as telp, "
                     + "coalesce(hp, '') as hp "
-                    + "FROM dokter p "
-                    + "where kode_dokter||coalesce(nama,'')|| "
+                    + "FROM rm_dokter p "
+                    + "where kode_dokter||coalesce(p.nama,'')|| "
                     + "coalesce(alamat,'') || coalesce(telepon,'') ilike '%"+txtCari.getText()+"%' "
                     + "order by 2;";
-            System.out.println(sQry);
+//            System.out.println(sQry);
             ResultSet rs=conn.createStatement().executeQuery(sQry);
             
             ((DefaultTableModel)jTable1.getModel()).setNumRows(0);
@@ -320,7 +320,7 @@ public class FrmDokterList extends javax.swing.JInternalFrame {
             try{
                 if(JOptionPane.showConfirmDialog(this, "Anda yakin untuk menghapus master dokter ini?", "Hapus Dokter", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
                     String kodeDokter=jTable1.getValueAt(iRow, 0).toString();
-                    int i=conn.createStatement().executeUpdate("Delete from dokter where kode_dokter='"+kodeDokter+"'");
+                    int i=conn.createStatement().executeUpdate("Delete from rm_dokter where kode_dokter='"+kodeDokter+"'");
                     udfFilter("");
                 }
             }catch(SQLException se){

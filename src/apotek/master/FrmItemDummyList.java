@@ -65,7 +65,7 @@ public class FrmItemDummyList extends javax.swing.JInternalFrame {
             ResultSet rs=conn.createStatement().executeQuery(
                     "select i.item_code as kode_barang, coalesce(i.item_name,'') as nama_barang, "
                     + "coalesce(i.nama_paten,'') as nama_paten, coalesce(i.paket, false) as is_paket,"
-                    + "coalesce(i.satuan_kecil,'') as uom_jual, coalesce(j.jenis_barang,'') as jenis_barang, "
+                    + "coalesce(i.satuan_kecil,'') as uom_jual, coalesce(i.isi_kemasan,'') as isi_kemasan, coalesce(j.jenis_barang,'') as jenis_barang, "
                     + "coalesce(g.group_name,'') as group_name, coalesce(b.bentuk_name,'') as bentuk_name, "
                     + "coalesce(m.nama_manufaktur,'') as nama_manufaktur, coalesce(i.indikasi,'') as indikasi "
                     + "from barang i "
@@ -83,6 +83,7 @@ public class FrmItemDummyList extends javax.swing.JInternalFrame {
                     rs.getString("nama_barang"),
                     rs.getString("nama_paten"),
                     rs.getString("uom_jual"),
+                    rs.getString("isi_kemasan"),
                     rs.getString("jenis_barang"),
                     rs.getString("group_name"),
                     rs.getString("bentuk_name"),
@@ -157,14 +158,14 @@ public class FrmItemDummyList extends javax.swing.JInternalFrame {
 
             },
             new String [] {
-                "ProductID", "Nama Barang", "Nama Paten", "Satuan", "Jenis", "Group", "Bentuk", "Manufaktur", "Kegunaan/ Indikasi", "Paket"
+                "ProductID", "Nama Barang", "Nama Paten", "Satuan", "Sediaan", "Jenis", "Group", "Bentuk", "Manufaktur", "Kegunaan/ Indikasi", "Paket"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Boolean.class
+                java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Boolean.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {

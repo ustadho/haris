@@ -1,0 +1,28 @@
+{
+    "pageFormat": {
+        "pageWidth": 55,                                                   
+        "pageLength": 30,                                                  
+        "usePageLengthFromPrinter": false,
+        "characterPitch": "17"
+    },
+    "template": {
+        "header": [
+            "   ###       Compa ny Name                 Page %{PAGE_NO}",   
+            " #######                                                 ",
+            "#########    Invoice No: ${invoiceNo:10}                 "    
+        ],
+        "detail": [
+            {
+                "table": "table_source",                                   
+                "border": true,
+                "columns": [
+                    { "source": "code", "width": 9, "caption": "Code" },   
+                    { "source": "name", "width": 39, "caption": "Name" },
+                    { "source": "qty",  "width": 6, "caption": "Qty"  }
+                ]
+            },
+            "                                                  ",
+            "   (Signature)                  (Signature)       "
+        ]
+    }
+}

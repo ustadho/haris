@@ -8,13 +8,21 @@ package com.klinik.rm;
 import apotek.Main;
 import com.klinik.dao.PasienDao;
 import com.klinik.model.Pasien;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import main.GeneralFunction;
+import org.jdesktop.swingx.decorator.HighlighterFactory;
 import org.jdesktop.swingx.prompt.PromptSupport;
 
 /**
@@ -32,6 +40,10 @@ public class DlgLookupPasien extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
         setLocationRelativeTo(null);
+        jXTable1.setHighlighters(HighlighterFactory.createAlternateStriping());
+        for(int i=0; i<jXTable1.getColumnCount(); i++){
+            jXTable1.getColumnModel().getColumn(i).setCellRenderer(new MyRowRenderer());
+        }
         PromptSupport.setPrompt("Masukan kata pencarian minimal 3 karakter", jTextField1);
         setTitle("Lookup Pasien");
     }
@@ -75,6 +87,23 @@ public class DlgLookupPasien extends javax.swing.JDialog {
         return this.selectedPasien;
     }
     
+    class MyRowRenderer extends DefaultTableCellRenderer implements TableCellRenderer{
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            setFont(table.getFont());
+            if(value instanceof Date){
+                value=new SimpleDateFormat("dd-MM-yyyy").format(value);
+            }
+            setForeground(new Color(51,51,51));
+            //setBackground(w);
+
+            if(isSelected){
+                setBackground(new Color(51,255,255));
+            }
+            setValue(value);
+            return this;
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -92,7 +121,6 @@ public class DlgLookupPasien extends javax.swing.JDialog {
         jXTable1 = new org.jdesktop.swingx.JXTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("FIlter"));
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -105,8 +133,7 @@ public class DlgLookupPasien extends javax.swing.JDialog {
         });
         jPanel1.add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 15, 275, 22));
 
-        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/small/refresh.png"))); // NOI18N
-        jButton1.setText("Refresh");
+        jButton1.setText("Filter");
         jButton1.setMargin(new java.awt.Insets(2, 2, 2, 2));
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -115,7 +142,6 @@ public class DlgLookupPasien extends javax.swing.JDialog {
         });
         jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 15, 100, 25));
 
-        btnPilih.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/small/accept.png"))); // NOI18N
         btnPilih.setText("Pilih");
         btnPilih.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnPilih.addActionListener(new java.awt.event.ActionListener() {
@@ -124,8 +150,6 @@ public class DlgLookupPasien extends javax.swing.JDialog {
             }
         });
         jPanel1.add(btnPilih, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 15, 125, 25));
-
-        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 11, 605, 55));
 
         jXTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -143,11 +167,38 @@ public class DlgLookupPasien extends javax.swing.JDialog {
                 return canEdit [columnIndex];
             }
         });
+        jXTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jXTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jXTable1);
 
-        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 70, 600, 250));
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 755, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(15, 15, 15)
+                        .addComponent(jScrollPane1)))
+                .addGap(7, 7, 7))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(11, 11, 11)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(4, 4, 4)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MAX_VALUE)
+                .addGap(7, 7, 7))
+        );
 
-        setBounds(0, 0, 634, 362);
+        setBounds(0, 0, 782, 482);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -168,6 +219,12 @@ public class DlgLookupPasien extends javax.swing.JDialog {
         this.selectedPasien=new PasienDao().getPasien(jXTable1.getValueAt(iRow, jXTable1.getColumnModel().getColumnIndex("Norm")).toString());
         this.dispose();
     }//GEN-LAST:event_btnPilihActionPerformed
+
+    private void jXTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jXTable1MouseClicked
+        if(evt.getClickCount()==2){
+            btnPilihActionPerformed(null);
+        }
+    }//GEN-LAST:event_jXTable1MouseClicked
 
     /**
      * @param args the command line arguments

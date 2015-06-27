@@ -19,8 +19,9 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JFormattedTextField;
@@ -28,17 +29,19 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import main.GeneralFunction;
 import main.MainForm;
 import org.jdesktop.swingx.JXTable;
-import pembelian.FrmPO;
 
 /**
  *
@@ -68,10 +71,10 @@ public class DlgItemPaketDetail extends javax.swing.JDialog {
         lookupItem.setConn(MainForm.conn);
         tblDetail.setRowHeight(22);
         tblDetail.getModel().addTableModelListener(new TableModelListener() {
-
             public void tableChanged(TableModelEvent e) {
                 int colSubTotal=tblDetail.getColumnModel().getColumnIndex("Sub Total");
-                if(e.getType()==TableModelEvent.UPDATE && e.getColumn()==tblDetail.getColumnModel().getColumnIndex("Qty")){
+                if(e.getType()==TableModelEvent.UPDATE && e.getColumn()==tblDetail.getColumnModel().getColumnIndex("Qty") || 
+                        e.getType()==TableModelEvent.UPDATE && e.getColumn()==tblDetail.getColumnModel().getColumnIndex("Baseprice")){
                     int iRow=tblDetail.getSelectedRow();
                     int colQty=tblDetail.getColumnModel().getColumnIndex("Qty");
                     int colHarga=tblDetail.getColumnModel().getColumnIndex("Baseprice");
@@ -84,12 +87,39 @@ public class DlgItemPaketDetail extends javax.swing.JDialog {
                 lblTotal.setText(fn.intFmt.format(total));
             }
         });
+        for (int i = 0; i < tblDetail.getColumnCount(); i++) {
+            tblDetail.getColumnModel().getColumn(i).setCellRenderer(new MyRowRenderer());
+        }
     }
 
     public List<BarangPaket> getListItem() {
         return listItem;
     }
     
+    public class MyRowRenderer extends DefaultTableCellRenderer implements TableCellRenderer{
+        SimpleDateFormat dmyFmt=new SimpleDateFormat("dd/MM/yyyy");
+
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+
+            if(value instanceof Date ){
+                value=dmyFmt.format(value);
+            }else if(value instanceof Double ||value instanceof Integer ||value instanceof Float  ){
+                setHorizontalAlignment(SwingConstants.RIGHT);
+                value=fn.dFmt.format(value);
+            }
+            setFont(table.getFont());
+            if(isSelected){
+                setBackground(table.getSelectionBackground());
+                setForeground(table.getSelectionForeground());
+            }else{
+                setBackground(table.getBackground());
+                setForeground(table.getForeground());
+            }
+
+            setValue(value);
+            return this;
+        }
+    }
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -106,6 +136,7 @@ public class DlgItemPaketDetail extends javax.swing.JDialog {
         lblTotal = new javax.swing.JLabel();
         btnSave = new javax.swing.JButton();
         btnClose = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -167,6 +198,9 @@ public class DlgItemPaketDetail extends javax.swing.JDialog {
         });
         getContentPane().add(btnClose, new org.netbeans.lib.awtextra.AbsoluteConstraints(513, 320, 100, 30));
 
+        jLabel2.setText("<html>\n<b>Ins</b> &nbsp; : Tambah Item <br>\n<b>Del</b> &nbsp; : Hapus Item <br>\n</html>");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 295, 370, 35));
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -191,7 +225,7 @@ public class DlgItemPaketDetail extends javax.swing.JDialog {
         this.aThis=this;
         ((DefaultTableModel)tblDetail.getModel()).setNumRows(0);
         for(BarangPaket x: listItem){
-            Barang b=itemDao.getBarangByKode(x.getItemCode());
+            Barang b=itemDao.getBarangByKode(x.getItemCode(), "KLINIK");
             ((DefaultTableModel)tblDetail.getModel()).addRow(new Object[]{
                 tblDetail.getRowCount()+1,
                 x.getItemCode(), 
@@ -254,6 +288,7 @@ public class DlgItemPaketDetail extends javax.swing.JDialog {
     private javax.swing.JButton btnClose;
     private javax.swing.JButton btnSave;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblTotal;
     private javax.swing.JTable tblDetail;
@@ -459,7 +494,7 @@ public class DlgItemPaketDetail extends javax.swing.JDialog {
 //        double saldo=itemDao.getSaldo(item, sSiteID);
         
 //        if(saldo >0){
-            Barang barang=itemDao.getBarangByKode(item);
+            Barang barang=itemDao.getBarangByKode(item, "KLINIK");
             ((DefaultTableModel)tblDetail.getModel()).addRow(new Object[]{
                 tblDetail.getRowCount()+1,
                     item,

@@ -8,13 +8,11 @@
  *
  * Created on Aug 31, 2010, 9:05:58 PM
  */
-
 package penjualan;
 
 import apotek.DLgLookup;
 import apotek.DlgDokter;
 import apotek.DlgLookupItemJual;
-import apotek.DlgPasien;
 import apotek.JDesktopImage;
 import apotek.dao.ItemDao;
 import main.MainForm;
@@ -22,6 +20,7 @@ import apotek.dao.PelangganDao;
 import apotek.dao.PenjualanDao;
 import com.klinik.model.Barang;
 import apotek.printPenjualan;
+import com.klinik.rm.DlgPasien;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -89,62 +88,65 @@ public class FrmPenjualan extends javax.swing.JFrame {
     private Connection conn;
     DefaultTableModel modelDetail;
     GeneralFunction fn;
-    DlgLookupItemJual lookupItem=new DlgLookupItemJual(this, true);
-    MyKeyListener kListener=new MyKeyListener();
-    final TableRowSorter<TableModel> sorter ;
-    private String sRLama="", sRBaru="";
+    DlgLookupItemJual lookupItem = new DlgLookupItemJual(this, true);
+    MyKeyListener kListener = new MyKeyListener();
+    final TableRowSorter<TableModel> sorter;
+    private String sRLama = "", sRBaru = "";
     MyTableCellEditorHeader cEditorH;
     //private double uangR=150;
     private boolean isKoreksi = false;
-    String sSiteID="01";
+    String sSiteID = "01";
     boolean tutupRek = false;
-    String sOldTipeHarga="";
-    SysConfig sy=new SysConfig();
+    String sOldTipeHarga = "";
+    SysConfig sy = new SysConfig();
     Component aThis;
     private Object srcForm;
     private JDesktopImage desktop;
-    ArrayList lstGudang=new ArrayList();
-    PelangganDao pelangganDao= new PelangganDao();
-    ItemDao itemDao=new ItemDao();
-    
-    /** Creates new form NewJFrame */
+    ArrayList lstGudang = new ArrayList();
+    PelangganDao pelangganDao = new PelangganDao();
+    ItemDao itemDao = new ItemDao();
+    private String noReg="";
+
+    /**
+     * Creates new form NewJFrame
+     */
     public FrmPenjualan() {
         initComponents();
 //        initConn();
-        aThis=this;
+        aThis = this;
         tblHeader.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         tblDetail.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
-        
-        tblHeader.setRowHeight(22);     tblDetail.setRowHeight(22);
-        tblHeader.getTableHeader().setFont(tblHeader.getFont());     tblDetail.getTableHeader().setFont(tblDetail.getFont());
-        
-        modelDetail=((DefaultTableModel)tblDetail.getModel());
+
+        tblHeader.setRowHeight(22);
+        tblDetail.setRowHeight(22);
+        tblHeader.getTableHeader().setFont(tblHeader.getFont());
+        tblDetail.getTableHeader().setFont(tblDetail.getFont());
+
+        modelDetail = ((DefaultTableModel) tblDetail.getModel());
         table.setModel(modelDetail);
 
-        sorter =new TableRowSorter<TableModel>(tblDetail.getModel());
-           tblDetail.setRowSorter(sorter);
+        sorter = new TableRowSorter<TableModel>(tblDetail.getModel());
+        tblDetail.setRowSorter(sorter);
 
         tblHeader.getModel().addTableModelListener(new TableModelListener() {
-            TableColumnModel colHeader=tblHeader.getColumnModel();
+            TableColumnModel colHeader = tblHeader.getColumnModel();
 
             public void tableChanged(TableModelEvent e) {
-                int iRow=tblHeader.getSelectedRow();
+                int iRow = tblHeader.getSelectedRow();
 
-                if(e.getType()==TableModelEvent.DELETE){
-                    for(int i=1; i<=tblHeader.getRowCount(); i++){
-                        String sOldR=tblHeader.getValueAt(i-1, 1).toString()+"#"+tblHeader.getValueAt(i-1, 0).toString();
+                if (e.getType() == TableModelEvent.DELETE) {
+                    for (int i = 1; i <= tblHeader.getRowCount(); i++) {
+                        String sOldR = tblHeader.getValueAt(i - 1, 1).toString() + "#" + tblHeader.getValueAt(i - 1, 0).toString();
+                        tblHeader.setValueAt(i, i - 1, 0);
+                        String sNewR = tblHeader.getValueAt(i - 1, 1).toString() + "#" + tblHeader.getValueAt(i - 1, 0).toString();
 
-                        tblHeader.setValueAt(i, i-1, 0);
-
-                        String sNewR=tblHeader.getValueAt(i-1, 1).toString()+"#"+tblHeader.getValueAt(i-1, 0).toString();
-
-                        for(int j=0; j<modelDetail.getRowCount(); j++){
-                            if(modelDetail.getValueAt(j, tblDetail.getColumnModel().getColumnIndex("NoR")).toString().equalsIgnoreCase(sOldR)){
+                        for (int j = 0; j < modelDetail.getRowCount(); j++) {
+                            if (modelDetail.getValueAt(j, tblDetail.getColumnModel().getColumnIndex("NoR")).toString().equalsIgnoreCase(sOldR)) {
                                 modelDetail.setValueAt(sNewR, j, tblDetail.getColumnModel().getColumnIndex("NoR"));
                             }
                         }
                     }
-                    
+
                 }
 //                if(tblHeader.getRowCount()==0){
 //                    ((DefaultTableModel)tblHeader.getModel()).setNumRows(1);
@@ -155,17 +157,17 @@ public class FrmPenjualan extends javax.swing.JFrame {
 //                    
 //                    tblHeader.setRowSelectionInterval(0, 0);
 //                }
-                
-                if(e.getType()==TableModelEvent.UPDATE){
-                    if((e.getColumn()==colHeader.getColumnIndex("R/")||e.getColumn()==colHeader.getColumnIndex("Qty R") ) ){
-                        if(tblHeader.getValueAt(iRow, colHeader.getColumnIndex("R/")).toString().equalsIgnoreCase("N")){
-                            ((DefaultTableModel)tblHeader.getModel()).setValueAt(0, iRow, colHeader.getColumnIndex("ES"));
-                        }else if(!tblHeader.getValueAt(iRow, colHeader.getColumnIndex("R/")).toString().equalsIgnoreCase("N")){
-                            ((DefaultTableModel)tblHeader.getModel()).setValueAt(
+
+                if (e.getType() == TableModelEvent.UPDATE) {
+                    if ((e.getColumn() == colHeader.getColumnIndex("R/") || e.getColumn() == colHeader.getColumnIndex("Qty R"))) {
+                        if (tblHeader.getValueAt(iRow, colHeader.getColumnIndex("R/")).toString().equalsIgnoreCase("N")) {
+                            ((DefaultTableModel) tblHeader.getModel()).setValueAt(0, iRow, colHeader.getColumnIndex("ES"));
+                        } else if (!tblHeader.getValueAt(iRow, colHeader.getColumnIndex("R/")).toString().equalsIgnoreCase("N")) {
+                            ((DefaultTableModel) tblHeader.getModel()).setValueAt(
                                     getEmbalaseService(fn.udfGetInt(tblHeader.getValueAt(tblHeader.getSelectedRow(), tblHeader.getColumnModel().getColumnIndex("Qty R")))),
                                     iRow, colHeader.getColumnIndex("ES"));
                         }
-                        
+
                     }
                 }
                 udfSetTotal();
@@ -173,56 +175,56 @@ public class FrmPenjualan extends javax.swing.JFrame {
         });
 
         tblDetail.getModel().addTableModelListener(new TableModelListener() {
-           public void tableChanged(TableModelEvent e) {
-               TableColumnModel col=tblDetail.getColumnModel();
-               if(e.getType()==TableModelEvent.DELETE || e.getType()==TableModelEvent.INSERT)
-                   if(table.getRowCount()>0){
-                    //jTable1.setRowSelectionInterval(0, 0);
-                    table.setModel((DefaultTableModel)fn.autoResizeColWidth(table, (DefaultTableModel)table.getModel()).getModel());
+            public void tableChanged(TableModelEvent e) {
+                TableColumnModel col = tblDetail.getColumnModel();
+                if (e.getType() == TableModelEvent.DELETE || e.getType() == TableModelEvent.INSERT) {
+                    if (table.getRowCount() > 0) {
+                        //jTable1.setRowSelectionInterval(0, 0);
+                        table.setModel((DefaultTableModel) fn.autoResizeColWidth(table, (DefaultTableModel) table.getModel()).getModel());
                     //if(((Boolean)tblDetail.getValueAt(e.getLastRow(), tblDetail.getColumnModel().getColumnIndex("Koreksi"))==false))
-                    //if(tblDetail.getSelectedRow()>=0 && tblDetail.getValueAt(tblDetail.getSelectedRow(), 0)!=null)
-                    TableModel tm= tblDetail.getModel();
+                        //if(tblDetail.getSelectedRow()>=0 && tblDetail.getValueAt(tblDetail.getSelectedRow(), 0)!=null)
+                        TableModel tm = tblDetail.getModel();
 
+                    }
+                }
 
-               }
+                if (e.getColumn() == 0) {
+                    String sKodeBarang = tblDetail.getValueAt(tblDetail.getSelectedRow(), 0).toString();
 
-               if(e.getColumn()==0){
-                    String sKodeBarang=tblDetail.getValueAt(tblDetail.getSelectedRow(), 0).toString();
-
-                    try{
-                        String sQry="select coalesce(nama_paten,'') as nama_item, " +
-                         "coalesce(satuan_kecil,'') as unit, " +
-                         "coalesce(i.base_price,0)*(1+coalesce(i.margin,0)/100) as harga " +
-                         "from barang i " +
-                         "where i.item_code='"+sKodeBarang+"'";
-
-                        ResultSet rs=conn.createStatement().executeQuery(sQry);
-                        if(rs.next()){
-                            int iRow=tblDetail.getSelectedRow();
+                    try {
+                        String sQry = "select coalesce(nama_paten,'') as nama_item, "
+                                + "coalesce(satuan_kecil,'') as unit, "
+                                + "case when '" + cmbTipeTarif.getSelectedItem().toString() + "'='KLINIK' then coalesce(harga_klinik,0) "
+                                + "else coalesce(harga_reseller,0) end as harga "
+                                + "from barang i "
+                                + "where i.item_code='" + sKodeBarang + "'";
+                        System.out.println(sQry);
+                        ResultSet rs = conn.createStatement().executeQuery(sQry);
+                        if (rs.next()) {
+                            int iRow = tblDetail.getSelectedRow();
                             tblDetail.setValueAt(rs.getString("nama_item"), iRow, col.getColumnIndex("Nama Barang"));
                             tblDetail.setValueAt(rs.getString("unit"), iRow, col.getColumnIndex("Satuan"));
-                            tblDetail.setValueAt(tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString()+"#"+tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString(), iRow, col.getColumnIndex("NoR"));;
-                            
+                            tblDetail.setValueAt(tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString() + "#" + tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString(), iRow, col.getColumnIndex("NoR"));;
+
                             tblDetail.setValueAt(rs.getDouble("harga"), iRow, col.getColumnIndex("Harga Satuan"));
                             tblDetail.setValueAt(1, iRow, col.getColumnIndex("Qty Jual"));
-                            tblDetail.setValueAt(tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString()+"#"+tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString()
-                                , tblDetail.getRowCount()-1, tblDetail.getColumnModel().getColumnIndex("NoR"));
+                            tblDetail.setValueAt(tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString() + "#" + tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString(), tblDetail.getRowCount() - 1, tblDetail.getColumnModel().getColumnIndex("NoR"));
                             tblDetail.changeSelection(iRow, col.getColumnIndex("Qty Jual"), false, false);
 
                         }
                         rs.close();
-                    }catch(SQLException se){
+                    } catch (SQLException se) {
                         System.err.println(se.getMessage());
                     }
-                }else if( e.getColumn()==col.getColumnIndex("Qty Jual")||e.getColumn()==col.getColumnIndex("Harga Satuan")||
-                         e.getColumn()==col.getColumnIndex("Diskon")){
-                    int iRow=tblDetail.getSelectedRow();
-                    if(iRow>=0){
-                        double jmlKecil=tblDetail.getValueAt(iRow, col.getColumnIndex("Qty Jual"))==null? 0: fn.udfGetDouble(tblDetail.getValueAt(iRow, col.getColumnIndex("Qty Jual")));
-                        double unitPrice=tblDetail.getValueAt(iRow, col.getColumnIndex("Harga Satuan"))==null? 0: fn.udfGetDouble(tblDetail.getValueAt(iRow, col.getColumnIndex("Harga Satuan")));
-                        double disc=tblDetail.getValueAt(iRow, col.getColumnIndex("Diskon"))==null? 0: fn.udfGetDouble(tblDetail.getValueAt(iRow, col.getColumnIndex("Diskon")));
+                } else if (e.getColumn() == col.getColumnIndex("Qty Jual") || e.getColumn() == col.getColumnIndex("Harga Satuan")
+                        || e.getColumn() == col.getColumnIndex("Diskon")) {
+                    int iRow = tblDetail.getSelectedRow();
+                    if (iRow >= 0) {
+                        double jmlKecil = tblDetail.getValueAt(iRow, col.getColumnIndex("Qty Jual")) == null ? 0 : fn.udfGetDouble(tblDetail.getValueAt(iRow, col.getColumnIndex("Qty Jual")));
+                        double unitPrice = tblDetail.getValueAt(iRow, col.getColumnIndex("Harga Satuan")) == null ? 0 : fn.udfGetDouble(tblDetail.getValueAt(iRow, col.getColumnIndex("Harga Satuan")));
+                        double disc = tblDetail.getValueAt(iRow, col.getColumnIndex("Diskon")) == null ? 0 : fn.udfGetDouble(tblDetail.getValueAt(iRow, col.getColumnIndex("Diskon")));
 
-                        tblDetail.setValueAt(Math.floor(unitPrice*jmlKecil-disc),
+                        tblDetail.setValueAt(Math.floor(unitPrice * jmlKecil - disc),
                                 iRow, col.getColumnIndex("Sub Total"));
                     }
 
@@ -247,14 +249,13 @@ public class FrmPenjualan extends javax.swing.JFrame {
         tblHeader.setRowHeight(22);
         tblDetail.getColumn("Nama Barang").setPreferredWidth(200);
         tblDetail.getColumn("Harga Satuan").setPreferredWidth(100);
-        
 
-        cEditorH=new MyTableCellEditorHeader();
+        cEditorH = new MyTableCellEditorHeader();
         tblHeader.getColumn("ES").setCellEditor(cEditorH);
         tblHeader.getColumn("R/").setCellEditor(cEditorH);
         tblHeader.getColumn("Qty R").setCellEditor(cEditorH);
 
-        MyTableCellEditor cEditor=new MyTableCellEditor();
+        MyTableCellEditor cEditor = new MyTableCellEditor();
         tblDetail.getColumn("Qty Jual").setCellEditor(cEditor);
         tblDetail.getColumn("Harga Satuan").setCellEditor(cEditor);
         tblDetail.getColumn("Diskon").setCellEditor(cEditor);
@@ -262,128 +263,131 @@ public class FrmPenjualan extends javax.swing.JFrame {
         tblDetail.getColumn("Koreksi").setMinWidth(0);
         tblDetail.getColumn("Koreksi").setMaxWidth(0);
         tblDetail.getColumn("Koreksi").setPreferredWidth(0);
-        
+
 //        tblDetail.getColumn("UR").setMinWidth(0);
 //        tblDetail.getColumn("UR").setMaxWidth(0);
 //        tblDetail.getColumn("UR").setPreferredWidth(0);
-        
         tblDetail.getColumn("NoR").setMinWidth(0);
         tblDetail.getColumn("NoR").setMaxWidth(0);
         tblDetail.getColumn("NoR").setPreferredWidth(0);
-        
+
         tblHeader.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-            "selectNextColumnCell");
+                "selectNextColumnCell");
         tblDetail.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-            "selectNextColumnCell");
-        
+                "selectNextColumnCell");
+
         //java.awt.Toolkit.getDefaultToolkit().setLockingKeyState(KeyEvent.VK_CAPS_LOCK, true);
     }
 
-    public void setSrcForm(Object frm){
-        srcForm=frm;
-    }
-    
-    public void setKoreksi(boolean b){
-        isKoreksi=b;
+    public void setSrcForm(Object frm) {
+        srcForm = frm;
     }
 
-    private void udfSetTotal(){
-        double dTotal=0;
-        for(int i=0; i< table.getRowCount(); i++){
-            dTotal+=fn.udfGetDouble(table.getValueAt(i, table.getColumnModel().getColumnIndex("Sub Total")));
+    public void setKoreksi(boolean b) {
+        isKoreksi = b;
+    }
+
+    private void udfSetTotal() {
+        double dTotal = 0;
+        for (int i = 0; i < table.getRowCount(); i++) {
+            dTotal += fn.udfGetDouble(table.getValueAt(i, table.getColumnModel().getColumnIndex("Sub Total")));
         }
-        for(int i=0; i< tblHeader.getRowCount(); i++){
-            dTotal+=fn.udfGetDouble(tblHeader.getValueAt(i, tblHeader.getColumnModel().getColumnIndex("ES")));
+        for (int i = 0; i < tblHeader.getRowCount(); i++) {
+            dTotal += fn.udfGetDouble(tblHeader.getValueAt(i, tblHeader.getColumnModel().getColumnIndex("ES")));
         }
         lblTotal.setText(fn.dFmt.format(dTotal));
-        lblNett.setText(fn.dFmt.format(dTotal - fn.udfGetDouble(txtDiskon.getText()) ));
+        lblNett.setText(fn.dFmt.format(dTotal - fn.udfGetDouble(txtDiskon.getText())));
     }
 
-    private void udfSetFilter(){
-        if(tblHeader.getRowCount()>0 && tblHeader.getSelectedRow()>=0 && tblHeader.getValueAt(tblHeader.getSelectedRow(), 0)!=null && tblHeader.getValueAt(tblHeader.getSelectedRow(), 1)!=null){
-            String sFilter=tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString()+"#"+tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString();
-            System.out.println("Filter : "+sFilter);
+    private void udfSetFilter() {
+        if (tblHeader.getRowCount() > 0 && tblHeader.getSelectedRow() >= 0 && tblHeader.getValueAt(tblHeader.getSelectedRow(), 0) != null && tblHeader.getValueAt(tblHeader.getSelectedRow(), 1) != null) {
+            String sFilter = tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString() + "#" + tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString();
+            System.out.println("Filter : " + sFilter);
             try {
-            sorter.setRowFilter(
-                RowFilter.regexFilter(sFilter));
+                sorter.setRowFilter(
+                        RowFilter.regexFilter(sFilter));
 
-            //if(sorter.getModel().getRowCount()>0)
-            if(tblDetail.getRowCount()>0)
-                tblDetail.setRowSelectionInterval(0, 0);
+                //if(sorter.getModel().getRowCount()>0)
+                if (tblDetail.getRowCount() > 0) {
+                    tblDetail.setRowSelectionInterval(0, 0);
+                }
 
             } catch (PatternSyntaxException pse) {
                 System.err.println("Bad regex pattern");
             }
-        }else{
+        } else {
             sorter.setRowFilter(null);
         }
     }
-    
+
 //    private void initConn(){
 //        SysConfig sc = new SysConfig();
 //        conn = (new KasirCon("jdbc:postgresql://" + sc.getServerLoc() + ":5432/" + sc.getDBName(), 
 //                "postgres", "ustasoft", this)).getCon();
 //
 //    }
-
-    public void setConn(Connection con){
-        this.conn=con;
+    public void setConn(Connection con) {
+        this.conn = con;
         pelangganDao.setConn(con);
     }
 
-    private void udfNew(){
+    private void udfNew() {
         udfClear();
         //modelDetail.setNumRows(0);
         btnNew.setEnabled(false);
-        
+
     }
 
     private void udfInitForm() {
-        if(SysConfig.versi.equalsIgnoreCase("DEMO") && new PenjualanDao().jmlRecord()>=40){
-            JOptionPane.showMessageDialog(this, "Versi demo hanya dibatasi maksimal 40 record.\n"
-                    + "Jika anda tertarik, silahkan kontak kami untuk pembelian software ini!");
-            this.dispose();
-            return;
-        }
-                    
-        fn=new GeneralFunction(conn);
-        lookupItem.setConn(conn);
-        fn.addKeyListenerInContainer(jToolBar1, kListener, txtFocusListener);
-        fn.addKeyListenerInContainer(jPanel1, kListener, txtFocusListener);
-        fn.addKeyListenerInContainer(jPanel2, kListener, txtFocusListener);
-        fn.addKeyListenerInContainer(jPanel3, kListener, txtFocusListener);
-        
-        sSiteID=sy.getSite_Id();
-        
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                if(!isKoreksi)
-                  txtNamaPelanggan.requestFocusInWindow();
-                else{
-                  txtNoTrx.requestFocusInWindow();
-                  btnNew.setEnabled(false);
-                  btnSave.setEnabled(true);
-                }
-            }
-        });
-
-        MaskFormatter fmttgl = null;
         try {
-            fmttgl = new MaskFormatter("##/##/####");
-        } catch (java.text.ParseException e) {}
+//            if (SysConfig.versi.equalsIgnoreCase("DEMO") && new PenjualanDao().jmlRecord() >= 40) {
+//                JOptionPane.showMessageDialog(this, "Versi demo hanya dibatasi maksimal 40 record.\n"
+//                        + "Jika anda tertarik, silahkan kontak kami untuk pembelian software ini!");
+//                this.dispose();
+//                return;
+//            }
 
-        JFormattedTextField jFDate1 = new JFormattedTextField(fmttgl);
-        jFJtTempo.setFormatterFactory(jFDate1.getFormatterFactory());
-        
-        try{
-            ResultSet rs=conn.createStatement().executeQuery(
-                    "select " +
-                    "to_char(current_date, 'dd/MM/yyyy') as tgl ");
+            fn = new GeneralFunction(conn);
+            lookupItem.setConn(conn);
+            fn.addKeyListenerInContainer(jToolBar1, kListener, txtFocusListener);
+            fn.addKeyListenerInContainer(jPanel1, kListener, txtFocusListener);
+            fn.addKeyListenerInContainer(jPanel2, kListener, txtFocusListener);
+            fn.addKeyListenerInContainer(jPanel3, kListener, txtFocusListener);
+
+            sSiteID = sy.getSite_Id();
+
+            java.awt.EventQueue.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    if (!isKoreksi) {
+                        if(txtNama.getText().length()==0)
+                            btnLookupPasien.requestFocus();
+                        else
+                            tblDetail.requestFocusInWindow();
+                    } else {
+                        txtNoTrx.requestFocusInWindow();
+                        btnNew.setEnabled(false);
+                        btnSave.setEnabled(true);
+                    }
+                }
+            });
+
+            MaskFormatter fmttgl = null;
+            try {
+                fmttgl = new MaskFormatter("##/##/####");
+            } catch (java.text.ParseException e) {
+            }
+
+            JFormattedTextField jFDate1 = new JFormattedTextField(fmttgl);
+            jFJtTempo.setFormatterFactory(jFDate1.getFormatterFactory());
+
+            ResultSet rs = conn.createStatement().executeQuery(
+                    "select "
+                    + "to_char(current_date, 'dd/MM/yyyy') as tgl ");
 //            lstGudang.clear();
 //            cmbGudang.removeAllItems();
 
-            while(rs.next()){
+            while (rs.next()) {
 //                lstGudang.add(rs.getString(1));
 //                cmbGudang.addItem(rs.getString(2));
                 lblTgl.setText(rs.getString("tgl"));
@@ -391,68 +395,89 @@ public class FrmPenjualan extends javax.swing.JFrame {
 //                jFJtTempo.setValue(rs.getString("tgl"));
             }
             rs.close();
-        }catch(SQLException se){
-            JOptionPane.showMessageDialog(this, se.getMessage());
-        }
 
-        txtNoTrx.setEnabled(isKoreksi);
-        btnNew.setEnabled(false);
-        if(isKoreksi && txtNoTrx.getText().length()>0){
-            udfLoadKoreksiJual();
-        }else
-            udfNew();
-        
+            txtNoTrx.setEnabled(isKoreksi);
+            btnNew.setEnabled(false);
+            if (isKoreksi && txtNoTrx.getText().length() > 0) {
+                udfLoadKoreksiJual();
+            } else {
+                if (this.noReg.length() > 0) {
+                    rs = MainForm.conn.createStatement().executeQuery("select r.no_Reg, r.norm, coalesce(ps.nama,'') as nama, coalesce(ps.alamat_domisili,'') as alamat "
+                            + "from rm_reg r "
+                            + "inner join rm_pasien ps on ps.norm=r.norm "
+                            + "where r.no_reg='" + noReg + "'");
+                    if (rs.next()) {
+                        lblNoReg.setText(rs.getString("no_reg"));
+                        txtNorm.setText(rs.getString("norm"));
+                        txtNama.setText(rs.getString("nama"));
+                        txtAlamat.setText(rs.getString("alamat"));
+                    }
+                    rs.close();
+                } else {
+                    udfNew();
+                }
+            }
+
 //        else if(isKoreksi && txtNoTrx.getText().length()>0)
 //            udfLoadRKKoreksi();
-        //else if(isKoreksi)
+            //else if(isKoreksi)
             //udfLoadReg();
-        jLabel17.setText(getTitle());
-        if(tblHeader.getRowCount()>0)
-            tblHeader.setRowSelectionInterval(0, 0);
+            jLabel17.setText(getTitle());
+            if (tblHeader.getRowCount() > 0) {
+                tblHeader.setRowSelectionInterval(0, 0);
+            }
+        } catch (SQLException se) {
+            JOptionPane.showMessageDialog(this, se.getMessage());
+        }
     }
 
-    private void udfClear(){
-        tutupRek=false;
+    private void udfClear() {
+        tutupRek = false;
         txtNoTrx.setText("");
-        txtKodePelanggan.setText("");
-        txtNamaPelanggan.setText("");
-        txtAlamatPelanggan.setText("");
-        txtDokter.setText(""); lblDokter.setText("-");
-        sOldTipeHarga="NON RESEP";
+        txtNorm.setText("");
+        txtNama.setText("");
+        txtAlamat.setText("");
+        txtDokter.setText("");
+        lblDokter.setText("-");
+        
+        sOldTipeHarga = "NON RESEP";
 //        cmbTipeHarga.setSelectedItem(sOldTipeHarga);
+        lblTotal.setText("0");
+        txtDiskon.setText("0");
         lblNett.setText("0");
-        setTitle((isKoreksi? "Koreksi": "")+ "Resep");
-        ((DefaultTableModel)tblHeader.getModel()).setNumRows(0);
-        //((DefaultTableModel)tblDetail.getModel()).setNumRows(0);
-        ((DefaultTableModel)table.getModel()).setNumRows(0);
-        ((DefaultTableModel)tblHeader.getModel()).addRow(new Object[]{
+        setTitle((isKoreksi ? "Koreksi" : "") + "Resep");
+        ((DefaultTableModel) tblHeader.getModel()).setNumRows(0);
+        ((DefaultTableModel) table.getModel()).setNumRows(0);
+        ((DefaultTableModel) tblHeader.getModel()).addRow(new Object[]{
             1, "N", 1, 0
         });
-        if(tblHeader.getRowCount()>0)
+        if (tblHeader.getRowCount() > 0) {
             tblHeader.setRowSelectionInterval(0, 0);
+        }
 
         cmbCustPembayaran.setSelectedIndex(0);
         cmbCustPembayaranItemStateChanged(null);
     }
 
-    private boolean udfCekBeforeSave(){
-        boolean st=true;
+    private boolean udfCekBeforeSave() {
+        boolean st = true;
         tblHeader.requestFocus(false);
         tblDetail.requestFocus(false);
-        
-        if(cmbCustPembayaran.getSelectedIndex()==1 && txtAlamatPelanggan.getText().trim().isEmpty()){
-            JOptionPane.showMessageDialog(this, "Untuk pembelian KREDIT Pelanggan harus diisi!");
-            txtNamaPelanggan.requestFocusInWindow();
-            if(!txtNamaPelanggan.isFocusOwner())
-                txtNamaPelanggan.requestFocus();
+
+        if (cmbCustPembayaran.getSelectedIndex() == 1 && txtAlamat.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Untuk pembelian KREDIT Pelanggan/ Pasien harus diisi!");
+            txtNama.requestFocusInWindow();
+            if (!txtNama.isFocusOwner()) {
+                txtNama.requestFocus();
+            }
             return false;
         }
-        if(!isKoreksi && table.getRowCount()==0){
+        if (!isKoreksi && table.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this, "Item transaksi masih belum diisi!");
             tblHeader.requestFocus();
             return false;
         }
-        if(!isKoreksi && fn.udfGetDouble(lblNett.getText())==0){
+        if (!isKoreksi && fn.udfGetDouble(lblNett.getText()) == 0) {
             JOptionPane.showMessageDialog(this, "Total penjualan masih Nol!");
             tblDetail.requestFocusInWindow();
             return false;
@@ -461,160 +486,167 @@ public class FrmPenjualan extends javax.swing.JFrame {
         return st;
     }
 
-    private void printKwitansi(){
+    private void printKwitansi() {
         PrinterJob job = PrinterJob.getPrinterJob();
-        SysConfig sy=new SysConfig();
+        SysConfig sy = new SysConfig();
 
         DocFlavor flavor = DocFlavor.SERVICE_FORMATTED.PRINTABLE;
         PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
         PrintServiceAttributeSet pset = new HashPrintServiceAttributeSet();
         PrintService[] services = PrintServiceLookup.lookupPrintServices(flavor, null);
-        int i=0;
-        for(i=0;i<services.length;i++){
-            if(services[i].getName().equalsIgnoreCase(sy.getPrintKwtName())){
+        int i = 0;
+        for (i = 0; i < services.length; i++) {
+            if (services[i].getName().equalsIgnoreCase(sy.getPrintKwtName())) {
                 break;
             }
         }
         //if (JOptionPane.showConfirmDialog(null,"Cetak Invoice?","Message",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE)==JOptionPane.YES_OPTION) {
-        try{
-            printPenjualan pn = new printPenjualan(conn, txtNoTrx.getText(), MainForm.sUserName,services[i]);
+        try {
+            printPenjualan pn = new printPenjualan(conn, txtNoTrx.getText(), MainForm.sUserName, services[i]);
 
-        }catch(java.lang.ArrayIndexOutOfBoundsException ie){
+        } catch (java.lang.ArrayIndexOutOfBoundsException ie) {
             JOptionPane.showMessageDialog(this, "Printer tidak ditemukan!");
         }
     }
-    
-    private void udfSave(){
-        if(!udfCekBeforeSave()) return;
-        String sNoKoreksi="";
-        try{
-            double bayar =0;
-            if(cmbCustPembayaran.getSelectedIndex()==0){
-                DlgPembayaran d1=new DlgPembayaran(this, true);
 
-                if(!isKoreksi || fn.udfGetDouble(lblNett.getText())>0){
+    private void udfSave() {
+        if (!udfCekBeforeSave()) {
+            return;
+        }
+        String sNoKoreksi = "";
+        try {
+            double bayar = 0;
+            if (cmbCustPembayaran.getSelectedIndex() == 0) {
+                DlgPembayaran d1 = new DlgPembayaran(this, true);
+
+                if (!isKoreksi || fn.udfGetDouble(lblNett.getText()) > 0) {
                     d1.setNoTrx(txtNoTrx.getText());
                     d1.setTotal(fn.udfGetDouble(lblTotal.getText()));
                     d1.setDiskon(fn.udfGetDouble(txtDiskon.getText()));
                     d1.setSrcForm(aThis);
                     d1.setVisible(true);
-                    if(!d1.isSelected()) return;
-                    if(d1.getBayar()<fn.udfGetDouble(lblNett.getText()) &&
-                            (txtAlamatPelanggan.getText().trim().equalsIgnoreCase("")||txtAlamatPelanggan.getText().trim().equalsIgnoreCase("CASH"))){
-                        JOptionPane.showMessageDialog(this, "Untuk transaksi kredit silakan masukkan nama pelanggan terlebih dulu!");
-                        txtNamaPelanggan.requestFocusInWindow();
+                    if (!d1.isSelected()) {
+                        return;
+                    }
+                    if (d1.getBayar() < fn.udfGetDouble(lblNett.getText())
+                            && (txtAlamat.getText().trim().equalsIgnoreCase("") || txtAlamat.getText().trim().equalsIgnoreCase("CASH"))) {
+                        JOptionPane.showMessageDialog(this, "Untuk transaksi kredit silakan masukkan nama pasien/ pelanggan terlebih dulu!");
+                        txtNama.requestFocusInWindow();
                         return;
                     }
                     bayar = d1.getBayar();
                 }
             }
             conn.setAutoCommit(false);
-            ResultSet rs=null;
+            ResultSet rs = null;
 
-            if(isKoreksi){
-                if(table.getRowCount()==0 && JOptionPane.showConfirmDialog(this, "Anda yakin untuk membatalkan penjualan ini?")!=JOptionPane.YES_OPTION){
+            if (isKoreksi) {
+                if (table.getRowCount() == 0 && JOptionPane.showConfirmDialog(this, "Anda yakin untuk membatalkan penjualan ini?") != JOptionPane.YES_OPTION) {
                     return;
                 }
-                rs=conn.createStatement().executeQuery("select fn_penjualan_koreksi('"+txtNoTrx.getText()+"', "
-                        + "'"+MainForm.sUserName+"', '"+MainForm.sShift+"')");
-                if(rs.next())
-                    sNoKoreksi=rs.getString(1);
+                String query="select fn_penjualan_koreksi('" + txtNoTrx.getText() + "', "
+                        + "'" + MainForm.sUserName + "', '" + MainForm.sShift + "')";
+                System.out.println(query);
+                rs = conn.createStatement().executeQuery(query);
+                if (rs.next()) {
+                    sNoKoreksi = rs.getString(1);
+                }
 
                 rs.close();
-                if(table.getRowCount()==0){
+                if (table.getRowCount() == 0) {
                     this.dispose();
                 }
             }
-            
-            if(txtNamaPelanggan.getText().trim().length() > 0 && txtKodePelanggan.getText().trim().length()==0){
-                txtKodePelanggan.setText(pelangganDao.simpanPelanggan("", txtNamaPelanggan.getText(), null, txtAlamatPelanggan.getText(), ""
+
+            if (txtNama.getText().trim().length() > 0 && txtNorm.getText().trim().length() == 0) {
+                txtNorm.setText(pelangganDao.simpanPelanggan("", txtNama.getText(), null, txtAlamat.getText(), ""
                         + "", "", ""));
             }
-            if(txtDokter.getText().trim().length() > 0 && lblDokter.getText().trim().length()==0){
+            if (txtDokter.getText().trim().length() > 0 && lblDokter.getText().trim().length() == 0) {
                 udfSimpanDokter();
             }
-            rs=conn.createStatement().executeQuery("select fn_get_kode_jual("+
-                    (isKoreksi?"(select tanggal::date from penjualan where no_penjualan='"+txtNoTrx.getText()+"')": "current_date")+" )");
-            if(rs.next()){
+            rs = conn.createStatement().executeQuery("select fn_get_kode_jual("
+                    + (isKoreksi ? "(select tanggal::date from penjualan where no_penjualan='" + txtNoTrx.getText() + "')" : "current_date") + " )");
+            if (rs.next()) {
                 txtNoTrx.setText(rs.getString(1));
             }
             rs.close();
 
-            PreparedStatement ps=conn.prepareStatement("INSERT INTO penjualan(" +
-                    "no_penjualan, kode_pelanggan, nama_pelanggan, alamat, " +
-                    "keterangan, kode_dokter, user_trx, shift, "
+            PreparedStatement ps = conn.prepareStatement("INSERT INTO penjualan("
+                    + "no_penjualan, kode_pelanggan, nama_pelanggan, alamat, "
+                    + "keterangan, kode_dokter, user_trx, shift, "
                     + "discount, no_resep, kode_jenis, ket_jenis_bayar, "
-                    + "jth_tempo, st_lunas, multi_satuan, total, bayar)values(?, ?, ?, ?, "
+                    + "jth_tempo, st_lunas, multi_satuan, total, bayar, tipe_tarif, no_reg) values"
+                    + "(?, ?, ?, ?, "
                     + "?, ?, ?, ?, "
                     + "?, ?, ?, ?, "
-                    + "?, ?, ?, ?, ?) ");
-            
+                    + "?, ?, ?, ?, ?, ?, ?) ");
+
             ps.setString(1, txtNoTrx.getText());
-            ps.setString(2, txtKodePelanggan.getText());
-            ps.setString(3, txtNamaPelanggan.getText());
-            ps.setString(4, txtAlamatPelanggan.getText());
-            
+            ps.setString(2, txtNorm.getText());
+            ps.setString(3, txtNama.getText());
+            ps.setString(4, txtAlamat.getText());
+
             ps.setString(5, "");
             ps.setString(6, lblDokter.getText());
             ps.setString(7, MainForm.sUserName);
             ps.setString(8, MainForm.sShift);
             ps.setDouble(9, fn.udfGetDouble(txtDiskon.getText()));
             ps.setString(10, ""); //No. REsep
-            ps.setString(11, cmbCustPembayaran.getSelectedItem().toString().equalsIgnoreCase("TUNAI")? "1": "0"); //No. REsep d1.getJenisBayar()
+            ps.setString(11, cmbCustPembayaran.getSelectedItem().toString().equalsIgnoreCase("TUNAI") ? "1" : "0"); //No. REsep d1.getJenisBayar()
             ps.setString(12, ""); //Keterangan jenis bayar
-            ps.setInt(13, cmbCustPembayaran.getSelectedIndex()==0? 0: fn.udfGetInt(txtTop.getText())); 
-            ps.setBoolean(14, (fn.udfGetDouble(lblNett.getText())<=bayar)); //St Lunas
+            ps.setInt(13, cmbCustPembayaran.getSelectedIndex() == 0 ? 0 : fn.udfGetInt(txtTop.getText()));
+            ps.setBoolean(14, (fn.udfGetDouble(lblNett.getText()) <= bayar)); //St Lunas
             ps.setBoolean(15, false); //Multi satuan
             ps.setDouble(16, fn.udfGetDouble(lblNett.getText()));
             ps.setDouble(17, bayar);
+            ps.setString(18, cmbTipeTarif.getSelectedItem().toString());
+            ps.setString(19, lblNoReg.getText());
             ps.executeUpdate();
 
             ps.close();
             ps = null;
-            
-            int colR=tblHeader.getColumnModel().getColumnIndex("R/");
-            String noR="";
-            for(int i=0; i<tblHeader.getRowCount(); i++){
-                if(tblHeader.getValueAt(i, colR).toString().equalsIgnoreCase("R")){
-                    if(ps==null || ps.isClosed()){
-                        ps=conn.prepareStatement("INSERT INTO penjualan_es(\n" +
-                                    "            no_penjualan, no_r, qty_r, es)\n" +
-                                    "    VALUES (?, ?, ?, ?);");
+
+            int colR = tblHeader.getColumnModel().getColumnIndex("R/");
+            String noR = "";
+            for (int i = 0; i < tblHeader.getRowCount(); i++) {
+                if (tblHeader.getValueAt(i, colR).toString().equalsIgnoreCase("R")) {
+                    if (ps == null || ps.isClosed()) {
+                        ps = conn.prepareStatement("INSERT INTO penjualan_es(\n"
+                                + "            no_penjualan, no_r, qty_r, es)\n"
+                                + "    VALUES (?, ?, ?, ?);");
                     }
-                    noR= tblHeader.getValueAt(i, tblHeader.getColumnModel().getColumnIndex("R/")).toString()+"#"+
-                            tblHeader.getValueAt(i, tblHeader.getColumnModel().getColumnIndex("No")).toString();
+                    noR = tblHeader.getValueAt(i, tblHeader.getColumnModel().getColumnIndex("R/")).toString() + "#"
+                            + tblHeader.getValueAt(i, tblHeader.getColumnModel().getColumnIndex("No")).toString();
                     ps.setString(1, txtNoTrx.getText());
                     ps.setString(2, noR);
                     ps.setInt(3, fn.udfGetInt(tblHeader.getValueAt(i, tblHeader.getColumnModel().getColumnIndex("Qty R"))));
                     ps.setDouble(4, fn.udfGetDouble(tblHeader.getValueAt(i, tblHeader.getColumnModel().getColumnIndex("ES"))));
                     ps.addBatch();
-                    
                 }
             }
-            
-            if(ps!=null){
+
+            if (ps != null) {
                 ps.executeBatch();
                 ps.close();
             }
-            
-            ps=conn.prepareStatement("INSERT INTO penjualan_detail(\n" +
-                "            no_penjualan, no_r, item_code, jumlah, harga, discount, tax, \n" +
-                "            kode_gudang, uom_jual, hpp, is_disc_rp, is_tax_rp)\n" +
-                "    VALUES (?, ?, ?, ?, ?, ?, ?, \n" +
-                "            ?, ?, ?, ?, ?);");
-            
-            
-            String sQry="";
-            TableColumnModel col=table.getColumnModel();
-            double harga=0, qty_jual=0, disc=0;
-            for(int iRow=0; iRow<table.getRowCount(); iRow++){
-                if(table.getValueAt(iRow, col.getColumnIndex("Kode"))!=null &&
-                   table.getValueAt(iRow, col.getColumnIndex("Kode")).toString().length()>0){
 
-                    qty_jual=fn.udfGetDouble(table.getValueAt(iRow, col.getColumnIndex("Qty Jual")));
-                    harga=fn.udfGetDouble(table.getValueAt(iRow, col.getColumnIndex("Harga Satuan")));
-                    disc=fn.udfGetDouble(table.getValueAt(iRow, col.getColumnIndex("Diskon")));
-                    
+            ps = conn.prepareStatement("INSERT INTO penjualan_detail(\n"
+                    + "            no_penjualan, no_r, item_code, jumlah, harga, discount, tax, \n"
+                    + "            kode_gudang, uom_jual, hpp, is_disc_rp, is_tax_rp)\n"
+                    + "    VALUES (?, ?, ?, ?, ?, ?, ?, \n"
+                    + "            ?, ?, ?, ?, ?);");
+
+            TableColumnModel col = table.getColumnModel();
+            double harga = 0, qty_jual = 0, disc = 0;
+            for (int iRow = 0; iRow < table.getRowCount(); iRow++) {
+                if (table.getValueAt(iRow, col.getColumnIndex("Kode")) != null
+                        && table.getValueAt(iRow, col.getColumnIndex("Kode")).toString().length() > 0) {
+
+                    qty_jual = fn.udfGetDouble(table.getValueAt(iRow, col.getColumnIndex("Qty Jual")));
+                    harga = fn.udfGetDouble(table.getValueAt(iRow, col.getColumnIndex("Harga Satuan")));
+                    disc = fn.udfGetDouble(table.getValueAt(iRow, col.getColumnIndex("Diskon")));
+
                     ps.setString(1, txtNoTrx.getText()); //no_penjualan
                     ps.setString(2, table.getValueAt(iRow, col.getColumnIndex("NoR")).toString()); //no_r
                     ps.setString(3, table.getValueAt(iRow, col.getColumnIndex("Kode")).toString()); //item_code
@@ -631,35 +663,37 @@ public class FrmPenjualan extends javax.swing.JFrame {
                 }
             }
             ps.executeBatch();
-            
+
 //            String sInsBayar="insert into penjualan_bayar(no_penjualan,sub_total,discount,ppn,total,bayar)" +
 //                             "values('"+ txtNoTrx.getText() +"',0,0,0,"+ fn.udfGetDouble(lblTotal.getText()) +","+
 //                             d1.getBayar() +");";
-
 //            int i=conn.createStatement().executeUpdate(sInsBayar);
-
             conn.setAutoCommit(true);
-            if(JOptionPane.showConfirmDialog(this, "Input data sukses, Klik ok untuk cetak invoice", "Message", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
+            if (JOptionPane.showConfirmDialog(this, "Input data sukses, Klik ok untuk cetak invoice", "Message", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                 printKwitansi();
 //                if(fn.udfGetDouble(lblTotal.getText())>d1.getBayar())
 //                    printKwitansi();
 //                
             }
-            if(isKoreksi && srcForm!=null){
-                if(srcForm instanceof FrmPenjualanHistory){
-                    ((FrmPenjualanHistory)srcForm).udfFilter();
+            if (isKoreksi && srcForm != null) {
+                if (srcForm instanceof FrmPenjualanHistory) {
+                    ((FrmPenjualanHistory) srcForm).udfFilter();
                     this.dispose();
                     return;
                 }
             }
-            udfNew();
+            if (this.noReg.length() > 0) {
+                this.dispose();
+            } else {
+                udfNew();
+            }
             rs.close();
-        }catch(SQLException se){
+        } catch (SQLException se) {
             try {
-                System.out.println("Error save: "+se.getMessage());
+                System.out.println("Error save: " + se.getMessage());
                 conn.rollback();
                 conn.setAutoCommit(true);
-                System.out.println("Error: "+ se.getMessage()+"\n"+se.getNextException());
+                System.out.println("Error: " + se.getMessage() + "\n" + se.getNextException());
                 Logger.getLogger(PelangganDao.class.getName()).log(Level.SEVERE, null, se);
 
             } catch (SQLException ex) {
@@ -667,18 +701,17 @@ public class FrmPenjualan extends javax.swing.JFrame {
             }
         }
 
-
     }
-    
-    private boolean isValidResepShift(String s){
-        boolean b=false;
+
+    private boolean isValidResepShift(String s) {
+        boolean b = false;
         try {
             ResultSet rs = conn.createStatement().executeQuery("select shift from phar_resep where no_resep='" + s + "'");
-            if(rs.next()){
-                b=(rs.getString(1).equalsIgnoreCase(MainForm.sShift));
-                if(!b){
-                    JOptionPane.showMessageDialog(this, "Shift Resep ('"+rs.getString(1)+"') dengan " +
-                            "shift yang dipilih, tidak bersesuaian!");
+            if (rs.next()) {
+                b = (rs.getString(1).equalsIgnoreCase(MainForm.sShift));
+                if (!b) {
+                    JOptionPane.showMessageDialog(this, "Shift Resep ('" + rs.getString(1) + "') dengan "
+                            + "shift yang dipilih, tidak bersesuaian!");
                 }
             }
             rs.close();
@@ -688,26 +721,27 @@ public class FrmPenjualan extends javax.swing.JFrame {
         return b;
     }
 
-    private int udfGetIdxHeader(String sNoR){
-        int idx=0;
-        for (int i=0; i<tblHeader.getRowCount(); i++){
-            if(tblHeader.getValueAt(i, 0).toString().equalsIgnoreCase(sNoR)){
-                idx=i;
+    private int udfGetIdxHeader(String sNoR) {
+        int idx = 0;
+        for (int i = 0; i < tblHeader.getRowCount(); i++) {
+            if (tblHeader.getValueAt(i, 0).toString().equalsIgnoreCase(sNoR)) {
+                idx = i;
             }
         }
 
         return idx;
     }
 
-    private Timestamp udfGetTanggalKoreksi(String sNoResep){
-        Timestamp time=null;
-        try{
-            ResultSet rs=conn.createStatement().executeQuery("select tanggal from phar_resep where no_resep='"+sNoResep+"'");
-            if(rs.next())
-                time=rs.getTimestamp("tanggal");
+    private Timestamp udfGetTanggalKoreksi(String sNoResep) {
+        Timestamp time = null;
+        try {
+            ResultSet rs = conn.createStatement().executeQuery("select tanggal from phar_resep where no_resep='" + sNoResep + "'");
+            if (rs.next()) {
+                time = rs.getTimestamp("tanggal");
+            }
 
             rs.close();
-        }catch(SQLException se){
+        } catch (SQLException se) {
             JOptionPane.showMessageDialog(this, se.getMessage());
         }
 
@@ -720,7 +754,7 @@ public class FrmPenjualan extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                txtNamaPelanggan.requestFocusInWindow();
+                txtNama.requestFocusInWindow();
             }
         });
     }
@@ -729,17 +763,17 @@ public class FrmPenjualan extends javax.swing.JFrame {
         txtNoTrx.setText(text);
     }
 
-    private void setDueDate(){
+    private void setDueDate() {
         try {
             jFJtTempo.setText(new SimpleDateFormat("dd/MM/yyyy").format(
                     getDueDate(new SimpleDateFormat("dd/MM/yyyy").parse(lblTgl.getText()),
-                    fn.udfGetInt(txtTop.getText()))));
+                            fn.udfGetInt(txtTop.getText()))));
         } catch (ParseException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage());
         }
     }
-    
-    private Date getDueDate(Date d, int i){
+
+    private Date getDueDate(Date d, int i) {
         Calendar c = Calendar.getInstance();
         c.setTime(d);
         c.add(Calendar.DAY_OF_MONTH, i);
@@ -748,119 +782,155 @@ public class FrmPenjualan extends javax.swing.JFrame {
     }
 
     public void setDesktopPane(JDesktopImage jDesktopPane1) {
-        this.desktop=jDesktopPane1;
+        this.desktop = jDesktopPane1;
     }
 
-    
+    private void sesuaikanHargaJual() {
+        int colKode = table.getColumnModel().getColumnIndex("Kode");
+        int colHarga = table.getColumnModel().getColumnIndex("Harga Satuan");
+        for (int i = 0; i < table.getRowCount(); i++) {
+            String item = table.getValueAt(i, colKode).toString();
+            Barang barang = itemDao.getBarangByKode(item, cmbTipeTarif.getSelectedItem().toString());
+            if (barang != null) {
+                table.setValueAt(cmbTipeTarif.getSelectedItem().toString().equalsIgnoreCase("KLINIK")? barang.getHargaKlinik(): barang.getHargaReseller(), i, colHarga);
+            }
+        }
+    }
+
+    public void setNoReg(String noReg) {
+        this.noReg = noReg;
+    }
+
     public class MyKeyListener extends KeyAdapter {
+
         @Override
-        public void keyReleased(KeyEvent evt){
-            if(evt.getSource().equals(txtTop))
+        public void keyReleased(KeyEvent evt) {
+            if (evt.getSource().equals(txtTop)) {
                 setDueDate();
-            else if(evt.getSource().equals(txtDiskon))
+            } else if (evt.getSource().equals(txtDiskon)) {
                 udfSetTotal();
-            
+                txtDiskon.setText(fn.intFmt.format(fn.udfGetDouble(txtDiskon.getText())));
+            } else if (evt.getSource().equals(txtDiskonPersen)) {
+                if(fn.udfGetInt(txtDiskonPersen.getText())>100){
+                    JOptionPane.showMessageDialog(aThis, "Diskon harus kurang dari 100");
+                    txtDiskonPersen.setText("0");
+                }
+                double diskon=fn.udfGetDouble(lblTotal.getText())*fn.udfGetDouble(txtDiskonPersen.getText())/100;
+                txtDiskon.setText(fn.intFmt.format(diskon));
+                udfSetTotal();
+                
+            }
+
         }
 
         @Override
-        public void keyTyped(KeyEvent evt){
-            if(evt.getSource().equals(txtDiskon)){
+        public void keyTyped(KeyEvent evt) {
+            if (evt.getSource().equals(txtDiskon)) {
                 GeneralFunction.keyTyped(evt);
             }
-            
+
         }
 
-        @Override        public void keyPressed(KeyEvent evt) {
+        @Override
+        public void keyPressed(KeyEvent evt) {
             Component ct = KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
             int keyKode = evt.getKeyCode();
-            switch(keyKode){
-                case KeyEvent.VK_INSERT:{
-                    if(tblHeader.getSelectedRow()<0) return;
+            switch (keyKode) {
+                case KeyEvent.VK_INSERT: {
+                    if (tblHeader.getSelectedRow() < 0) {
+                        return;
+                    }
                     tblHeader.changeSelection(tblHeader.getSelectedRow(), 0, false, false);
 
                     udfSetFilter();
-                    if(tblDetail.getCellEditor()!=null && evt.getSource().equals(tblDetail))
+                    if (tblDetail.getCellEditor() != null && evt.getSource().equals(tblDetail)) {
                         tblDetail.getCellEditor().stopCellEditing();
-                    else if(tblHeader.getCellEditor()!=null && evt.getSource().equals(tblHeader))
+                    } else if (tblHeader.getCellEditor() != null && evt.getSource().equals(tblHeader)) {
                         tblHeader.getCellEditor().stopCellEditing();
+                    }
 
-                    
                     cEditorH.setVisible(false);
 //                    if(!tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString().equalsIgnoreCase("T") && tblDetail.getRowCount()==0){
 //                        udfAddItemRacikan();
 //                    }
 //                    else{
-                        if(tblDetail.getSelectedRow()>=0 && tblDetail.getValueAt(tblDetail.getSelectedRow(), 0)==null){
-                        }else{
-                            
-                        }
-                        
-                        lookupItem.clearText();
+                    if (tblDetail.getSelectedRow() >= 0 && tblDetail.getValueAt(tblDetail.getSelectedRow(), 0) == null) {
+                    } else {
+
+                    }
+
+                    lookupItem.clearText();
 //                        lookupItem.setKodeGudang(sSiteID);
 //                        lookupItem.setJikaExists(false);
-                        lookupItem.setAlwaysOnTop(true);
+                    lookupItem.setAlwaysOnTop(true);
 //                        lookupItem.setColumn0Name("Kode");
-                        lookupItem.setObjForm(aThis);
-                        lookupItem.setSrcTable(tblDetail, tblDetail.getColumnModel().getColumnIndex("Qty Jual"));
-                        lookupItem.setKeyEvent(evt);
+                    lookupItem.setObjForm(aThis);
+                    lookupItem.setSrcTable(tblDetail, tblDetail.getColumnModel().getColumnIndex("Qty Jual"));
+                    lookupItem.setKeyEvent(evt);
 //                        lookupItem.setNoR(tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString()+"#"+tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString());
 //                        if(tblHeader.getSelectedRow()>=0){
 //                            String sFilter=tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString()+"#"+tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString();
 //                            lookupItem.udfSetFilter(sFilter);
 //                        }
-                        lookupItem.setVisible(true);
-                        if(lookupItem.getKodeBarang().length()>0){
-                            insertItem();
-                            
-                            
-                        }else{
-                            udfDeleteItemDetail();
-                        }
+                    lookupItem.setVisible(true);
+                    if (lookupItem.getKodeBarang().length() > 0) {
+                        insertItem();
+
+                    } else {
+                        udfDeleteItemDetail();
+                    }
                     //}
                     //lookupItem.requestFocusInWindow();
                     break;
                 }
-                case KeyEvent.VK_F3:{
-                    if(evt.getSource().equals(tblDetail) && tblDetail.getSelectedRow()>=0 && tblDetail.getValueAt(tblDetail.getSelectedRow(), 0)!=null){
+                case KeyEvent.VK_F3: {
+                    if (evt.getSource().equals(tblDetail) && tblDetail.getSelectedRow() >= 0 && tblDetail.getValueAt(tblDetail.getSelectedRow(), 0) != null) {
                         tblDetail.changeSelection(tblDetail.getSelectedRow(), 0, false, false);
                         lookupItem.setSrcTable(tblDetail, tblDetail.getColumnModel().getColumnIndex("Qty Jual"));
                         lookupItem.setVisible(true);
                     }
                     break;
                 }
-                case KeyEvent.VK_F2:{
-                    if(btnSave.isEnabled())
+                case KeyEvent.VK_F2: {
+                    if (btnSave.isEnabled()) {
                         udfSave();
-                    break;
-                }
-                case KeyEvent.VK_F9:{
-                    if(tblDetail.getRowCount()==0) return;
-                    ((DefaultTableModel)tblHeader.getModel()).addRow(new Object[]{
-                        tblHeader.getRowCount()+1, "N", 0
-                    });
-                    tblHeader.requestFocusInWindow();
-                    tblHeader.requestFocus();
-                    if(tblHeader.getRowCount()>0){
-                        tblHeader.setRowSelectionInterval(tblHeader.getRowCount()-1, tblHeader.getRowCount()-1);
-                        tblHeader.changeSelection(tblHeader.getRowCount()-1, 1, false, false);
                     }
                     break;
                 }
-                case KeyEvent.VK_ENTER : {
-                    if(!(ct instanceof JTable))                    {
-                        if (!fn.isListVisible()){
+                case KeyEvent.VK_F9: {
+                    if (tblDetail.getRowCount() == 0) {
+                        return;
+                    }
+                    ((DefaultTableModel) tblHeader.getModel()).addRow(new Object[]{
+                        tblHeader.getRowCount() + 1, "N", 0
+                    });
+                    tblHeader.requestFocusInWindow();
+                    tblHeader.requestFocus();
+                    if (tblHeader.getRowCount() > 0) {
+                        tblHeader.setRowSelectionInterval(tblHeader.getRowCount() - 1, tblHeader.getRowCount() - 1);
+                        tblHeader.changeSelection(tblHeader.getRowCount() - 1, 1, false, false);
+                    }
+                    break;
+                }
+                case KeyEvent.VK_ENTER: {
+                    if (!(ct instanceof JTable)) {
+                        if (!fn.isListVisible()) {
                             Component c = findNextFocus();
-                                if (c==null) return;
-                                if(c.isEnabled())
+                            if (c == null) {
+                                return;
+                            }
+                            if (c.isEnabled()) {
+                                c.requestFocus();
+                            } else {
+                                c = findNextFocus();
+                                if (c != null) {
                                     c.requestFocus();
-                                else{
-                                    c = findNextFocus();
-                                    if (c!=null) c.requestFocus();;
-                                }
-                        }else{
+                                };
+                            }
+                        } else {
                             fn.lstRequestFocus();
                         }
-                    }else{
+                    } else {
 //                        if(jTable1.getSelectedColumn()<jTable1.getColumnCount()-1){
 //                            jTable1.changeSelection(jTable1.getSelectedRow(), jTable1.getSelectedColumn()+1, false, false);
 //                        }
@@ -868,59 +938,66 @@ public class FrmPenjualan extends javax.swing.JFrame {
                     break;
                 }
                 case KeyEvent.VK_DOWN: {
-                    if(!(ct.getClass().getSimpleName().equalsIgnoreCase("JTABLE")))
-                        {
-                            if (!fn.isListVisible()){
-                                Component c = findNextFocus();
-                                if (c==null) return;
-                                if(c.isEnabled())
-                                    c.requestFocus();
-                                else{
-                                    c = findNextFocus();
-                                    if (c!=null) c.requestFocus();;
-                                }
-                            }else{
-                                fn.lstRequestFocus();
+                    if (!(ct.getClass().getSimpleName().equalsIgnoreCase("JTABLE"))) {
+                        if (!fn.isListVisible()) {
+                            Component c = findNextFocus();
+                            if (c == null) {
+                                return;
                             }
-                            break;
+                            if (c.isEnabled()) {
+                                c.requestFocus();
+                            } else {
+                                c = findNextFocus();
+                                if (c != null) {
+                                    c.requestFocus();
+                                };
+                            }
+                        } else {
+                            fn.lstRequestFocus();
+                        }
+                        break;
                     }
                 }
 
                 case KeyEvent.VK_UP: {
-                    if(!(ct.getClass().getSimpleName().equalsIgnoreCase("JTABLE")))
-                    {
+                    if (!(ct.getClass().getSimpleName().equalsIgnoreCase("JTABLE"))) {
                         Component c = findPrevFocus();
-                        if (c==null) return;
-                        if(c.isEnabled())
+                        if (c == null) {
+                            return;
+                        }
+                        if (c.isEnabled()) {
                             c.requestFocus();
-                        else{
+                        } else {
                             c = findNextFocus();
-                            if (c!=null) c.requestFocus();;
+                            if (c != null) {
+                                c.requestFocus();
+                            };
                         }
                     }
                     break;
                 }
-                case KeyEvent.VK_DELETE:{
-                    if(evt.getSource().equals(tblDetail))
+                case KeyEvent.VK_DELETE: {
+                    if (evt.getSource().equals(tblDetail)) {
                         udfDeleteItemDetail();
-                    
+                    }
+
                     break;
                 }
-                case KeyEvent.VK_F11:{
+                case KeyEvent.VK_F11: {
                     tblHeader.requestFocusInWindow();
                     tblHeader.requestFocus();
                     tblHeader.changeSelection(tblHeader.getSelectedRow(), tblHeader.getSelectedColumn(), false, false);
                     break;
                 }
-                case KeyEvent.VK_F12:{
+                case KeyEvent.VK_F12: {
                     tblDetail.requestFocusInWindow();
                     tblDetail.requestFocus();
                     tblDetail.changeSelection(tblDetail.getSelectedRow(), tblDetail.getSelectedColumn(), false, false);
                     break;
                 }
-                case KeyEvent.VK_ESCAPE:{
-                    if(JOptionPane.showConfirmDialog(null,"Anda Yakin Untuk Keluar?",
-                            "SHS Pharmacy",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
+                case KeyEvent.VK_ESCAPE: {
+                    if (JOptionPane.showConfirmDialog(null, "Anda Yakin Untuk Keluar?",
+                            "SHS Pharmacy", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                         dispose();
                     }
                     break;
@@ -933,7 +1010,6 @@ public class FrmPenjualan extends javax.swing.JFrame {
 //            if(evt.getSource().equals(txtDisc)||evt.getSource().equals(txtQty)||evt.getSource().equals(txtUnitPrice))
 //                GeneralFunction.keyTyped(evt);
 //        }
-
         public Component findNextFocus() {
             // Find focus owner
             Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
@@ -967,37 +1043,39 @@ public class FrmPenjualan extends javax.swing.JFrame {
         }
     }
 
-    public void udfDeleteItemDetail(){
-        if(tblDetail.getSelectedRow()>=0){
-            int iRow[]= tblDetail.getSelectedRows();
-            int rowPalingAtas=iRow[0];
+    public void udfDeleteItemDetail() {
+        if (tblDetail.getSelectedRow() >= 0) {
+            int iRow[] = tblDetail.getSelectedRows();
+            int rowPalingAtas = iRow[0];
 
-            TableModel tm= tblDetail.getModel();
+            TableModel tm = tblDetail.getModel();
 
-            while(iRow.length>0) {
+            while (iRow.length > 0) {
                 //JOptionPane.showMessageDialog(null, iRow[0]);
-                ((DefaultTableModel)tm).removeRow(tblDetail.convertRowIndexToModel(iRow[0]));
+                ((DefaultTableModel) tm).removeRow(tblDetail.convertRowIndexToModel(iRow[0]));
                 iRow = tblDetail.getSelectedRows();
             }
             tblDetail.clearSelection();
 
-            if(tblDetail.getRowCount()>0 && rowPalingAtas<tblDetail.getRowCount()){
+            if (tblDetail.getRowCount() > 0 && rowPalingAtas < tblDetail.getRowCount()) {
                 tblDetail.setRowSelectionInterval(rowPalingAtas, rowPalingAtas);
-            }else{
-                if(tblDetail.getRowCount()>0)
-                    tblDetail.setRowSelectionInterval(rowPalingAtas-1, rowPalingAtas-1);
-                else
+            } else {
+                if (tblDetail.getRowCount() > 0) {
+                    tblDetail.setRowSelectionInterval(rowPalingAtas - 1, rowPalingAtas - 1);
+                } else {
                     tblDetail.requestFocus();
+                }
             }
-            if(tblDetail.getSelectedRow()>=0)
+            if (tblDetail.getSelectedRow() >= 0) {
                 tblDetail.changeSelection(tblDetail.getSelectedRow(), 0, false, false);
+            }
         }
     }
-    
-    public JFormattedTextField getFormattedText(){
-        JFormattedTextField fText=null;
+
+    public JFormattedTextField getFormattedText() {
+        JFormattedTextField fText = null;
         try {
-            fText = new JFormattedTextField(new MaskFormatter("##/##/##")){
+            fText = new JFormattedTextField(new MaskFormatter("##/##/##")) {
                 protected boolean processKeyBinding(final KeyStroke ks, final KeyEvent e, final int condition, final boolean pressed) {
                     if (hasFocus()) {
                         return super.processKeyBinding(ks, e, condition, pressed);
@@ -1007,7 +1085,7 @@ public class FrmPenjualan extends javax.swing.JFrame {
                             public void run() {
                                 processKeyBinding(ks, e, condition, pressed);
                             }
-                      });
+                        });
                         return true;
                     }
                 }
@@ -1020,60 +1098,62 @@ public class FrmPenjualan extends javax.swing.JFrame {
     }
 
     JTextField ustTextField = new JTextField() {
-            protected boolean processKeyBinding(final KeyStroke ks, final KeyEvent e, final int condition, final boolean pressed) {
-                if (hasFocus()) {
-                    return super.processKeyBinding(ks, e, condition, pressed);
-                } else {
-                    this.requestFocus();
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            processKeyBinding(ks, e, condition, pressed);
-                        }
-                  });
-                    return true;
-                }
+        protected boolean processKeyBinding(final KeyStroke ks, final KeyEvent e, final int condition, final boolean pressed) {
+            if (hasFocus()) {
+                return super.processKeyBinding(ks, e, condition, pressed);
+            } else {
+                this.requestFocus();
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        processKeyBinding(ks, e, condition, pressed);
+                    }
+                });
+                return true;
             }
-        };
-    public class MyTableCellEditor extends AbstractCellEditor implements TableCellEditor {
-        private Toolkit toolkit;
-        JTextField text= ustTextField;
+        }
+    };
 
-        JFormattedTextField fText=getFormattedText();
+    public class MyTableCellEditor extends AbstractCellEditor implements TableCellEditor {
+
+        private Toolkit toolkit;
+        JTextField text = ustTextField;
+
+        JFormattedTextField fText = getFormattedText();
 
         int col, row;
 
-
         public Component getTableCellEditorComponent(JTable tblDetail, Object value,
-            boolean isSelected, int rowIndex, int vColIndex) {
+                boolean isSelected, int rowIndex, int vColIndex) {
             // 'value' is value contained in the cell located at (rowIndex, vColIndex)
-            row=rowIndex;
-            col=vColIndex;
-            text=ustTextField;
+            row = rowIndex;
+            col = vColIndex;
+            text = ustTextField;
             text.setName("textEditor");
 
             text.addKeyListener(kListener);
 
-           text.setBackground(new Color(0,255,204));
-           text.addFocusListener(txtFocusListener);
-           text.setFont(tblDetail.getFont());
-           text.setVisible(!lookupItem.isVisible());
-            if(lookupItem.isVisible()){
+            text.setBackground(new Color(0, 255, 204));
+            text.addFocusListener(txtFocusListener);
+            text.setFont(tblDetail.getFont());
+            text.setVisible(!lookupItem.isVisible());
+            if (lookupItem.isVisible()) {
                 return null;
             }
-            text.setText(value==null? "": value.toString());
+            text.setText(value == null ? "" : value.toString());
 
-            if(value instanceof Double || value instanceof Float|| value instanceof Integer){
-               text.setText(fn.dFmt.format(value));
-            }else
-                text.setText(value==null? "":value.toString());
-           return text;
+            if (value instanceof Double || value instanceof Float || value instanceof Integer) {
+                text.setText(fn.dFmt.format(value));
+            } else {
+                text.setText(value == null ? "" : value.toString());
+            }
+            return text;
         }
 
         public Object getCellEditorValue() {
-            Object o="";//=component.getText();
+            Object o = "";//=component.getText();
             Object retVal = 0;
             try {
-                double qty = fn.udfGetDouble(((JTextField)text).getText());
+                double qty = fn.udfGetDouble(((JTextField) text).getText());
 //                double saldo=itemDao.getSaldo(tblDetail.getValueAt(tblDetail.getSelectedRow(), 0).toString(), sSiteID);
 //                if(qty > saldo){
 //                    JOptionPane.showMessageDialog(aThis, "Saldo Tidak Cukup\n"
@@ -1084,97 +1164,102 @@ public class FrmPenjualan extends javax.swing.JFrame {
                 return retVal;
             } catch (Exception e) {
                 toolkit.beep();
-                retVal=0;
+                retVal = 0;
             }
             return retVal;
         }
     }
 
-    private FocusListener txtFocusListener=new FocusListener() {
+    private FocusListener txtFocusListener = new FocusListener() {
         public void focusGained(FocusEvent e) {
-            if(e.getSource() instanceof JTextField || e.getSource() instanceof JFormattedTextField){
-                ((JTextField)e.getSource()).setBackground(Color.YELLOW);
-                if((e.getSource() instanceof JTextField && ((JTextField)e.getSource()).getName()!=null && ((JTextField)e.getSource()).getName().equalsIgnoreCase("textEditor"))){
-                    ((JTextField)e.getSource()).setSelectionStart(0);
-                    ((JTextField)e.getSource()).setSelectionEnd(((JTextField)e.getSource()).getText().length());
+            if (e.getSource() instanceof JTextField || e.getSource() instanceof JFormattedTextField) {
+                ((JTextField) e.getSource()).setBackground(Color.YELLOW);
+                if ((e.getSource() instanceof JTextField && ((JTextField) e.getSource()).getName() != null && ((JTextField) e.getSource()).getName().equalsIgnoreCase("textEditor"))) {
+                    ((JTextField) e.getSource()).setSelectionStart(0);
+                    ((JTextField) e.getSource()).setSelectionEnd(((JTextField) e.getSource()).getText().length());
                 }
             }
         }
 
         public void focusLost(FocusEvent e) {
-            if(e.getSource() instanceof  JTextField  || e.getSource() instanceof  JFormattedTextField){
-                ((JTextField)e.getSource()).setBackground(Color.WHITE);
-                if(e.getSource().equals(txtNoTrx) && isKoreksi && !e.isTemporary()){
-                    if(txtNoTrx.getText().isEmpty() ){
+            if (e.getSource() instanceof JTextField || e.getSource() instanceof JFormattedTextField) {
+                ((JTextField) e.getSource()).setBackground(Color.WHITE);
+                if (e.getSource().equals(txtNoTrx) && isKoreksi && !e.isTemporary()) {
+                    if (txtNoTrx.getText().isEmpty()) {
                         udfNew();
-                    }else{
+                    } else {
                         udfLoadKoreksiJual();
                     }
                 }
-           }
+            }
         }
-    } ;
+    };
 
-    private void udfSubTotalItem(int iRow){
-        TableColumnModel col=tblDetail.getColumnModel();
-        if(((DefaultTableModel)tblDetail.getModel()).getValueAt(iRow, col.getColumnIndex("Qty Jual"))!=null &&
-                        ((DefaultTableModel)tblDetail.getModel()).getValueAt(iRow, col.getColumnIndex("Harga Satuan"))!=null){
+    private void udfSubTotalItem(int iRow) {
+        TableColumnModel col = tblDetail.getColumnModel();
+        if (((DefaultTableModel) tblDetail.getModel()).getValueAt(iRow, col.getColumnIndex("Qty Jual")) != null
+                && ((DefaultTableModel) tblDetail.getModel()).getValueAt(iRow, col.getColumnIndex("Harga Satuan")) != null) {
 
-            double subTotal=fn.udfGetDouble(((DefaultTableModel)tblDetail.getModel()).getValueAt(iRow, col.getColumnIndex("Qty Jual")))*
-                            fn.udfGetDouble(((DefaultTableModel)tblDetail.getModel()).getValueAt(iRow, col.getColumnIndex("Harga Satuan")));
+            double subTotal = fn.udfGetDouble(((DefaultTableModel) tblDetail.getModel()).getValueAt(iRow, col.getColumnIndex("Qty Jual")))
+                    * fn.udfGetDouble(((DefaultTableModel) tblDetail.getModel()).getValueAt(iRow, col.getColumnIndex("Harga Satuan")));
 
-
-            ((DefaultTableModel)tblDetail.getModel()).setValueAt(subTotal,iRow, col.getColumnIndex("Sub Total"));
+            ((DefaultTableModel) tblDetail.getModel()).setValueAt(subTotal, iRow, col.getColumnIndex("Sub Total"));
         }
     }
 
-    private boolean isExistKitir(String sNo){
-        boolean b=false;
-        try{
-            ResultSet rs=conn.createStatement().executeQuery("select no_antrian from phar_resep_antrian where no_antrian='"+sNo+"'");
-            b=rs.next();
+    private boolean isExistKitir(String sNo) {
+        boolean b = false;
+        try {
+            ResultSet rs = conn.createStatement().executeQuery("select no_antrian from phar_resep_antrian where no_antrian='" + sNo + "'");
+            b = rs.next();
             rs.close();
-        }catch(SQLException se){
+        } catch (SQLException se) {
             JOptionPane.showMessageDialog(this, se.getMessage());
         }
 
         return b;
     }
-    public class MyTableCellEditorHeader extends AbstractCellEditor implements TableCellEditor {
-        private Toolkit toolkit;
-        JTextComponent  text=new JTextField() {
-        protected boolean processKeyBinding(final KeyStroke ks, final KeyEvent e, final int condition, final boolean pressed) {
-            if(lookupItem.isVisible()) return true;
 
-            if (hasFocus()) {
-                return super.processKeyBinding(ks, e, condition, pressed);
-            } else {
-                this.requestFocus();
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        processKeyBinding(ks, e, condition, pressed);
-                    }
-              });
-                return true;
+    public class MyTableCellEditorHeader extends AbstractCellEditor implements TableCellEditor {
+
+        private Toolkit toolkit;
+        JTextComponent text = new JTextField() {
+            protected boolean processKeyBinding(final KeyStroke ks, final KeyEvent e, final int condition, final boolean pressed) {
+                if (lookupItem.isVisible()) {
+                    return true;
+                }
+
+                if (hasFocus()) {
+                    return super.processKeyBinding(ks, e, condition, pressed);
+                } else {
+                    this.requestFocus();
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            processKeyBinding(ks, e, condition, pressed);
+                        }
+                    });
+                    return true;
+                }
             }
-        }
-    };
+        };
 
         int col, row;
 
         public Component getTableCellEditorComponent(JTable table, Object value,
-            boolean isSelected, int rowIndex, int vColIndex) {
-            col=vColIndex;
-            row=rowIndex;
-            if(col==1) sRLama = value==null? "": value.toString();
-            int iText=(vColIndex==tblHeader.getColumnModel().getColumnIndex("R/")? 1: 30);
-            text.setBackground(new Color(0,255,204));
+                boolean isSelected, int rowIndex, int vColIndex) {
+            col = vColIndex;
+            row = rowIndex;
+            if (col == 1) {
+                sRLama = value == null ? "" : value.toString();
+            }
+            int iText = (vColIndex == tblHeader.getColumnModel().getColumnIndex("R/") ? 1 : 30);
+            text.setBackground(new Color(0, 255, 204));
             text.addFocusListener(txtFocusListener);
             text.addKeyListener(kListener);
             text.setFont(table.getFont());
             text.setName("textEditor");
             text.removeKeyListener(kListener);
-            AbstractDocument doc = (AbstractDocument)text.getDocument();
+            AbstractDocument doc = (AbstractDocument) text.getDocument();
             doc.setDocumentFilter(null);
             doc.setDocumentFilter(new FixedSizeFilter(iText));
 
@@ -1182,38 +1267,42 @@ public class FrmPenjualan extends javax.swing.JFrame {
             text.addKeyListener(kListener);
 
             text.setVisible(!lookupItem.isVisible());
-            if(lookupItem.isVisible()){
+            if (lookupItem.isVisible()) {
                 return null;
             }
 
-            if(isSelected) {}
+            if (isSelected) {
+            }
 
-            if(value instanceof Double || value instanceof Float|| value instanceof Integer){
+            if (value instanceof Double || value instanceof Float || value instanceof Integer) {
                 double dVal = fn.udfGetFloat(value);
                 text.setText(fn.dFmt.format(dVal));
-            }else
-                text.setText(value==null? "":value.toString());
-           return text;
+            } else {
+                text.setText(value == null ? "" : value.toString());
+            }
+            return text;
         }
 
         public Object getCellEditorValue() {
             Object retVal = 0;
             try {
-                if(col==tblHeader.getColumnModel().getColumnIndex("ES")||col==tblHeader.getColumnModel().getColumnIndex("Qty R")){
-                    retVal= fn.udfGetDouble(((JTextField)text).getText());
-                }else{
-                    retVal= (((JTextField)text).getText().toUpperCase());
-                    retVal=retVal.toString().equalsIgnoreCase("R")?  "R":  "N";
+                if (col == tblHeader.getColumnModel().getColumnIndex("ES") || col == tblHeader.getColumnModel().getColumnIndex("Qty R")) {
+                    retVal = fn.udfGetDouble(((JTextField) text).getText());
+                } else {
+                    retVal = (((JTextField) text).getText().toUpperCase());
+                    retVal = retVal.toString().equalsIgnoreCase("R") ? "R" : "N";
                 }
                 sRBaru = retVal.toString();
-                if(modelDetail.getRowCount()==0) return retVal;
+                if (modelDetail.getRowCount() == 0) {
+                    return retVal;
+                }
 
-                if(col==tblHeader.getColumnModel().getColumnIndex("R/") && ! sRBaru.equalsIgnoreCase(sRLama)){
-                    String sOldR=sRLama+"#"+tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString();
-                    String sNewR=sRBaru+"#"+tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString();
+                if (col == tblHeader.getColumnModel().getColumnIndex("R/") && !sRBaru.equalsIgnoreCase(sRLama)) {
+                    String sOldR = sRLama + "#" + tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString();
+                    String sNewR = sRBaru + "#" + tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString();
 
-                    for(int i=0; i<modelDetail.getRowCount(); i++){
-                        if(modelDetail.getValueAt(i, tblDetail.getColumnModel().getColumnIndex("NoR")).toString().equalsIgnoreCase(sOldR)){
+                    for (int i = 0; i < modelDetail.getRowCount(); i++) {
+                        if (modelDetail.getValueAt(i, tblDetail.getColumnModel().getColumnIndex("NoR")).toString().equalsIgnoreCase(sOldR)) {
                             modelDetail.setValueAt(sNewR, i, tblDetail.getColumnModel().getColumnIndex("NoR"));
                         }
                     }
@@ -1222,21 +1311,22 @@ public class FrmPenjualan extends javax.swing.JFrame {
                 return retVal;
             } catch (Exception e) {
                 toolkit.beep();
-                retVal=0;
+                retVal = 0;
             }
             return retVal;
         }
 
-        public void setVisible(boolean b){
+        public void setVisible(boolean b) {
             text.setVisible(b);
         }
 
-        public boolean isVisible(){
+        public boolean isVisible() {
             return text.isVisible();
         }
     }
 
     class FixedSizeFilter extends DocumentFilter {
+
         int maxSize;
 
         // limit is the maximum number of characters allowed.
@@ -1253,7 +1343,7 @@ public class FrmPenjualan extends javax.swing.JFrame {
         // This method is called when characters in the document are replace with other characters
         public void replace(DocumentFilter.FilterBypass fb, int offset, int length,
                 String str, AttributeSet attrs) throws BadLocationException {
-            int newLength = fb.getDocument().getLength()-length+str.length();
+            int newLength = fb.getDocument().getLength() - length + str.length();
             if (newLength <= maxSize) {
                 fb.replace(offset, length, str, attrs);
             } else {
@@ -1292,7 +1382,6 @@ public class FrmPenjualan extends javax.swing.JFrame {
 //            
 //        }
 //    }
-
     private double getEmbalaseService(int jumlah) {
         double dEmbalase = 0;
         try {
@@ -1311,56 +1400,57 @@ public class FrmPenjualan extends javax.swing.JFrame {
         return dEmbalase;
     }
 
-    private void udfLoadKoreksiJual(){
-        String sQry="select distinct h.no_penjualan as sales_no, to_char(h.tanggal, 'dd/MM/yyyy') as tgl_trx, " +
-                "coalesce(h.kode_pelanggan,'') as kode_cust, coalesce(c.nama_pelanggan, h.nama_pelanggan) as nama_cust, "
-                + "coalesce(c.alamat,'')  || coalesce(k.nama_kota,'') as alamat, " +
-                "coalesce(d.kode_gudang,'') as kode_gudang, " +
-                "coalesce(g.deskripsi,'') as nama_gudang, coalesce(h.keterangan,'') as catatan, " +
-                "case when h.kode_jenis='2' then 'KREDIT' else 'TUNAI' end as jenis, coalesce(h.koreksi, false) as koreksi, "
-                + "coalesce(h.kode_dokter,'') as kode_dokter, coalesce(dok.nama||', '||coalesce(dok.gelar_depan,'')||', '||coalesce(dok.gelar_belakang,''), '-') as nama_dokter " +
-                "from penjualan h " +
-                "inner join penjualan_detail d on d.no_penjualan=h.no_penjualan " +
-                "left join pelanggan c on c.kode_pelanggan=h.kode_pelanggan " +
-                "left join gudang g on g.kode_gudang=d.kode_gudang "
-                + "left join kota k on k.kode_kota=c.kode_kota "
-                + "left join dokter dok on dok.kode_dokter=h.kode_dokter " +
-                "where h.no_penjualan='"+txtNoTrx.getText()+"'";
+    private void udfLoadKoreksiJual() {
+        String sQry = "select distinct h.no_penjualan as sales_no, to_char(h.tanggal, 'dd/MM/yyyy') as tgl_trx, "
+                + "coalesce(p.norm, h.kode_pelanggan) as kode_cust, coalesce(p.nama||coalesce(', '||p.title,''), h.nama_pelanggan) as nama_cust, "
+                + "coalesce(p.alamat_domisili,'') as alamat, "
+                + "coalesce(d.kode_gudang,'') as kode_gudang, coalesce(h.discount,0) as discount,"
+                + "coalesce(g.deskripsi,'') as nama_gudang, coalesce(h.keterangan,'') as catatan, "
+                + "case when h.kode_jenis='2' then 'KREDIT' else 'TUNAI' end as jenis, coalesce(h.koreksi, false) as koreksi, "
+                + "coalesce(h.kode_dokter,'') as kode_dokter, coalesce(dok.nama||', '||coalesce(dok.gelar_depan,'')||', '||coalesce(dok.gelar_belakang,''), '-') as nama_dokter "
+                + "from penjualan h "
+                + "inner join penjualan_detail d on d.no_penjualan=h.no_penjualan "
+                + "left join rm_pasien p on p.norm=h.kode_pelanggan "
+                + "left join gudang g on g.kode_gudang=d.kode_gudang "
+                + "left join rm_dokter dok on dok.kode_dokter=h.kode_dokter "
+                + "where h.no_penjualan='" + txtNoTrx.getText() + "'";
         System.out.println(sQry);
-        try{
-            ResultSet rs=conn.createStatement().executeQuery(sQry);
-            if(rs.next()){
-                if(rs.getBoolean("koreksi")==true){
+        try {
+            ResultSet rs = conn.createStatement().executeQuery(sQry);
+            if (rs.next()) {
+                if (rs.getBoolean("koreksi") == true) {
                     JOptionPane.showMessageDialog(this, "Transaksi penjualan sudah pernah dikoreksi!");
                     udfNew();
-                    if(!txtNoTrx.isFocusOwner())
+                    if (!txtNoTrx.isFocusOwner()) {
                         txtNoTrx.requestFocus();
-                    
+                    }
+
                     return;
                 }
                 txtNoTrx.setText(rs.getString("sales_no"));
-                txtNamaPelanggan.setText(rs.getString("nama_cust"));
-                txtKodePelanggan.setText(rs.getString("kode_cust"));
-                txtAlamatPelanggan.setText(rs.getString("alamat"));
-                
+                txtNama.setText(rs.getString("nama_cust"));
+                txtNorm.setText(rs.getString("kode_cust"));
+                txtAlamat.setText(rs.getString("alamat"));
+
                 lblTgl.setText(rs.getString("tgl_trx"));
                 txtCatatan.setText(rs.getString("catatan"));
                 cmbCustPembayaran.setSelectedItem(rs.getString("jenis"));
 
                 rs.close();
-                sQry="select d.item_code, coalesce(i.nama_paten,'') as nama_item, coalesce(i.satuan_kecil,'') as satuan_kecil," +
-                        "coalesce(d.jumlah, 0) as qty_jual, coalesce(d.harga,0) as unit_price, " +
-                        "coalesce(d.discount,0) as discount, coalesce(d.tax,0) as tax, " +
-                        "(coalesce(d.jumlah,0) * coalesce(d.harga,0))-coalesce(d.discount,0) as sub_Total,  " +
-                        "case when coalesce(d.no_r,'')='' then 'T#1' else d.no_r end as no_racikan " +
-                        "from penjualan_detail d " +
-                        "inner join barang i on i.item_code=d.item_code  " +
-                        "where d.no_penjualan='"+txtNoTrx.getText()+"'";
+                sQry = "select d.item_code, coalesce(i.nama_paten,'') as nama_item, coalesce(i.satuan_kecil,'') as satuan_kecil,"
+                        + "coalesce(d.jumlah, 0) as qty_jual, coalesce(d.harga,0) as unit_price, "
+                        + "coalesce(d.discount,0) as discount, coalesce(d.tax,0) as tax, "
+                        + "(coalesce(d.jumlah,0) * coalesce(d.harga,0))-coalesce(d.discount,0) as sub_Total,  "
+                        + "case when coalesce(d.no_r,'')='' then 'T#1' else d.no_r end as no_racikan "
+                        + "from penjualan_detail d "
+                        + "inner join barang i on i.item_code=d.item_code  "
+                        + "where d.no_penjualan='" + txtNoTrx.getText() + "'";
 
-                ((DefaultTableModel)table.getModel()).setNumRows(0);
-                rs=conn.createStatement().executeQuery(sQry);
-                while(rs.next()){
-                    ((DefaultTableModel)table.getModel()).addRow(new Object[]{
+                ((DefaultTableModel) table.getModel()).setNumRows(0);
+                rs = conn.createStatement().executeQuery(sQry);
+                double diskon=0;
+                while (rs.next()) {
+                    ((DefaultTableModel) table.getModel()).addRow(new Object[]{
                         rs.getString("item_code"),
                         rs.getString("nama_item"),
                         rs.getString("satuan_kecil"),
@@ -1370,26 +1460,31 @@ public class FrmPenjualan extends javax.swing.JFrame {
                         rs.getDouble("sub_Total"),
                         rs.getString("no_racikan")
                     });
+                    diskon=rs.getDouble("discount");
                 }
-                if(table.getRowCount()>0)
+                txtDiskon.setText(fn.intFmt.format(diskon));
+                udfSetTotal();
+                rs.close();
+                if (table.getRowCount() > 0) {
                     table.setRowSelectionInterval(0, 0);
+                }
 
-            }else{
+            } else {
                 JOptionPane.showMessageDialog(this, "No. Penjualan tidak ditemukan!");
                 udfNew();
                 txtNoTrx.requestFocus();
             }
             rs.close();
-        }catch(SQLException se){
+        } catch (SQLException se) {
             JOptionPane.showMessageDialog(this, se.getMessage());
         }
 
     }
 
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -1414,11 +1509,12 @@ public class FrmPenjualan extends javax.swing.JFrame {
         cmbCustPembayaran = new javax.swing.JComboBox();
         jLabel12 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
+        jLabel20 = new javax.swing.JLabel();
+        cmbTipeTarif = new javax.swing.JComboBox();
         jLabel19 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        txtAlamatPelanggan = new javax.swing.JTextField();
-        txtNamaPelanggan = new javax.swing.JTextField();
-        btnAccCust = new javax.swing.JButton();
+        txtAlamat = new javax.swing.JTextField();
+        txtNama = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         txtDokter = new javax.swing.JTextField();
         lblDokter = new javax.swing.JTextField();
@@ -1426,8 +1522,10 @@ public class FrmPenjualan extends javax.swing.JFrame {
         jLabel14 = new javax.swing.JLabel();
         lblTgl = new javax.swing.JLabel();
         jLabel22 = new javax.swing.JLabel();
-        txtKodePelanggan = new javax.swing.JTextField();
-        btnAccCust1 = new javax.swing.JButton();
+        txtNorm = new javax.swing.JTextField();
+        btnLookupPasien = new javax.swing.JButton();
+        jLabel21 = new javax.swing.JLabel();
+        lblNoReg = new javax.swing.JLabel();
         jToolBar1 = new javax.swing.JToolBar();
         btnNew = new javax.swing.JButton();
         btnSave = new javax.swing.JButton();
@@ -1441,6 +1539,8 @@ public class FrmPenjualan extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         txtDiskon = new javax.swing.JTextField();
+        txtDiskonPersen = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Penjualan Resep");
@@ -1518,7 +1618,7 @@ public class FrmPenjualan extends javax.swing.JFrame {
 
         jLabel2.setBackground(new java.awt.Color(204, 255, 255));
         jLabel2.setFont(new java.awt.Font("Arial", 0, 12)); // NOI18N
-        jLabel2.setText("<html>\n&nbsp <b>Ins</b> &nbsp: Tambah Item<br>\n&nbsp <b>F9</b>   &nbsp &nbsp: Add Item Header (Menambah <b>R</b> Racikan & <b>N</b> Non Racikan)<br>\n&nbsp <b>F3</b>   &nbsp &nbsp: Edit Item Detail<br>\n&nbsp <b>F11</b> &nbsp: Pindah Focus Ke Header<br>\n&nbsp <b>F12</b> &nbsp: Pindah Focus Ke Detail<br>\n</html>");
+        jLabel2.setText("<html> \n&nbsp <b>Ins</b> &nbsp;: Tambah Item<br> \n&nbsp <b>F9</b>   &nbsp; &nbsp;: Add Item Header (Menambah <b>R</b> Racikan & <b>N</b> Non Racikan)<br> \n&nbsp <b>F3</b>   &nbsp; &nbsp;: Edit Item Detail<br> &nbsp <b>F11</b> &nbsp: Pindah Focus Ke Header, &nbsp;\n&nbsp <b>F12</b> &nbsp;: Pindah Focus Ke Detail<br> \n&nbsp <b>F2</b> &nbsp; &nbsp: Simpan Transaksi<br> \n</html>");
         jLabel2.setBorder(new javax.swing.border.MatteBorder(null));
         jLabel2.setOpaque(true);
 
@@ -1547,8 +1647,14 @@ public class FrmPenjualan extends javax.swing.JFrame {
         jPanel1.add(jLabel18, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 105, 20));
 
         txtNoTrx.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        txtNoTrx.setText("120101000000");
         txtNoTrx.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(153, 153, 153)));
-        jPanel1.add(txtNoTrx, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 10, 140, 22));
+        txtNoTrx.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtNoTrxActionPerformed(evt);
+            }
+        });
+        jPanel1.add(txtNoTrx, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 10, 110, 22));
 
         jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -1588,7 +1694,20 @@ public class FrmPenjualan extends javax.swing.JFrame {
         jLabel13.setText("Jatuh Tempo");
         jPanel2.add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 35, 90, 20));
 
-        jPanel1.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 10, 210, 100));
+        jLabel20.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        jLabel20.setText("Tarif");
+        jPanel2.add(jLabel20, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 85, 90, 20));
+
+        cmbTipeTarif.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        cmbTipeTarif.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "KLINIK", "RESELLER" }));
+        cmbTipeTarif.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cmbTipeTarifItemStateChanged(evt);
+            }
+        });
+        jPanel2.add(cmbTipeTarif, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 85, 110, -1));
+
+        jPanel1.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(565, 5, 210, 110));
 
         jLabel19.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel19.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -1599,36 +1718,16 @@ public class FrmPenjualan extends javax.swing.JFrame {
         jLabel1.setText("Pasien");
         jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 35, 80, 20));
 
-        txtAlamatPelanggan.setEditable(false);
-        txtAlamatPelanggan.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        txtAlamatPelanggan.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        txtAlamatPelanggan.setDisabledTextColor(new java.awt.Color(0, 0, 0));
-        jPanel1.add(txtAlamatPelanggan, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 55, 390, 20));
+        txtAlamat.setEditable(false);
+        txtAlamat.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtAlamat.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        txtAlamat.setDisabledTextColor(new java.awt.Color(0, 0, 0));
+        jPanel1.add(txtAlamat, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 55, 390, 20));
 
-        txtNamaPelanggan.setEditable(false);
-        txtNamaPelanggan.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        txtNamaPelanggan.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        txtNamaPelanggan.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                txtNamaPelangganKeyReleased(evt);
-            }
-        });
-        jPanel1.add(txtNamaPelanggan, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 35, 320, 20));
-
-        btnAccCust.setText("+");
-        btnAccCust.setToolTipText("Tambah data pasien/ pelanggan");
-        btnAccCust.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        btnAccCust.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnAccCustMouseClicked(evt);
-            }
-        });
-        btnAccCust.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAccCustActionPerformed(evt);
-            }
-        });
-        jPanel1.add(btnAccCust, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 35, 30, 22));
+        txtNama.setEditable(false);
+        txtNama.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        txtNama.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel1.add(txtNama, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 35, 320, 20));
 
         jLabel4.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel4.setText("Dokter");
@@ -1666,38 +1765,46 @@ public class FrmPenjualan extends javax.swing.JFrame {
 
         jLabel14.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel14.setText("Tgl. Transaksi");
-        jPanel1.add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 10, 90, 20));
+        jPanel1.add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(215, 10, 90, 20));
 
         lblTgl.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         lblTgl.setText("20/12/2010");
         lblTgl.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanel1.add(lblTgl, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 10, 90, 20));
+        jPanel1.add(lblTgl, new org.netbeans.lib.awtextra.AbsoluteConstraints(305, 10, 75, 20));
 
         jLabel22.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel22.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel22.setText(":");
         jPanel1.add(jLabel22, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 80, 10, 20));
 
-        txtKodePelanggan.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        txtKodePelanggan.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        txtKodePelanggan.setDisabledTextColor(new java.awt.Color(0, 0, 0));
-        txtKodePelanggan.setEnabled(false);
-        jPanel1.add(txtKodePelanggan, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 35, 70, 20));
+        txtNorm.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtNorm.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        txtNorm.setDisabledTextColor(new java.awt.Color(0, 0, 0));
+        txtNorm.setEnabled(false);
+        jPanel1.add(txtNorm, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 35, 70, 20));
 
-        btnAccCust1.setText("...");
-        btnAccCust1.setToolTipText("Tambah data pasien/ pelanggan");
-        btnAccCust1.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        btnAccCust1.addMouseListener(new java.awt.event.MouseAdapter() {
+        btnLookupPasien.setText("...");
+        btnLookupPasien.setToolTipText("Tambah data pasien/ pelanggan");
+        btnLookupPasien.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        btnLookupPasien.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnAccCust1MouseClicked(evt);
+                btnLookupPasienMouseClicked(evt);
             }
         });
-        btnAccCust1.addActionListener(new java.awt.event.ActionListener() {
+        btnLookupPasien.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAccCust1ActionPerformed(evt);
+                btnLookupPasienActionPerformed(evt);
             }
         });
-        jPanel1.add(btnAccCust1, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 35, 30, 22));
+        jPanel1.add(btnLookupPasien, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 35, 30, 22));
+
+        jLabel21.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        jLabel21.setText("No. Reg :");
+        jPanel1.add(jLabel21, new org.netbeans.lib.awtextra.AbsoluteConstraints(385, 10, 60, 20));
+
+        lblNoReg.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        lblNoReg.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel1.add(lblNoReg, new org.netbeans.lib.awtextra.AbsoluteConstraints(445, 10, 105, 20));
 
         jToolBar1.setRollover(true);
 
@@ -1740,7 +1847,7 @@ public class FrmPenjualan extends javax.swing.JFrame {
         jLabel17.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
         jLabel17.setForeground(new java.awt.Color(0, 0, 153));
         jLabel17.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel17.setText("Resep");
+        jLabel17.setText("Transaksi");
         jLabel17.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
         lblNett.setBackground(new java.awt.Color(0, 0, 102));
@@ -1776,9 +1883,10 @@ public class FrmPenjualan extends javax.swing.JFrame {
         jPanel3.add(jLabel5);
         jLabel5.setBounds(15, 5, 110, 25);
 
-        jLabel6.setText("Diskon : ");
+        jLabel6.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel6.setText("%");
         jPanel3.add(jLabel6);
-        jLabel6.setBounds(15, 30, 110, 25);
+        jLabel6.setBounds(110, 30, 20, 25);
 
         txtDiskon.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
         txtDiskon.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
@@ -1786,6 +1894,17 @@ public class FrmPenjualan extends javax.swing.JFrame {
         txtDiskon.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel3.add(txtDiskon);
         txtDiskon.setBounds(135, 30, 175, 25);
+
+        txtDiskonPersen.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
+        txtDiskonPersen.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        txtDiskonPersen.setText("0");
+        txtDiskonPersen.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel3.add(txtDiskonPersen);
+        txtDiskonPersen.setBounds(80, 30, 25, 25);
+
+        jLabel7.setText("Diskon : ");
+        jPanel3.add(jLabel7);
+        jLabel7.setBounds(15, 30, 65, 25);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -1854,54 +1973,56 @@ public class FrmPenjualan extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowOpened
 
     private void tblHeaderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tblHeaderKeyPressed
-        if(evt.getKeyCode()==KeyEvent.VK_DELETE && tblHeader.getSelectedRow()>=0){
-            int iRow[]= tblHeader.getSelectedRows();
-            int rowPalingAtas=iRow[0];
+        if (evt.getKeyCode() == KeyEvent.VK_DELETE && tblHeader.getSelectedRow() >= 0) {
+            int iRow[] = tblHeader.getSelectedRows();
+            int rowPalingAtas = iRow[0];
 
-            TableModel tm= tblHeader.getModel();
+            TableModel tm = tblHeader.getModel();
 
-            while(iRow.length>0) {
+            while (iRow.length > 0) {
                 //JOptionPane.showMessageDialog(null, iRow[0]);
-                
-                TableColumnModel colD=tblDetail.getColumnModel();
-                int i=0;
-                do{
-                    if(modelDetail.getValueAt(i, colD.getColumnIndex("NoR")).toString().equalsIgnoreCase(
-                            tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString()+"#"+tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString())){
-                         modelDetail.removeRow(i);
-                    }else
-                        i++;
 
-                }while(i<modelDetail.getRowCount());
-                ((DefaultTableModel)tm).removeRow(tblHeader.convertRowIndexToModel(iRow[0]));
+                TableColumnModel colD = tblDetail.getColumnModel();
+                int i = 0;
+                do {
+                    if (modelDetail.getValueAt(i, colD.getColumnIndex("NoR")).toString().equalsIgnoreCase(
+                            tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString() + "#" + tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString())) {
+                        modelDetail.removeRow(i);
+                    } else {
+                        i++;
+                    }
+
+                } while (i < modelDetail.getRowCount());
+                ((DefaultTableModel) tm).removeRow(tblHeader.convertRowIndexToModel(iRow[0]));
                 iRow = tblHeader.getSelectedRows();
             }
             tblHeader.clearSelection();
 
-            if(tblHeader.getRowCount()>0 && rowPalingAtas<tblHeader.getRowCount()){
+            if (tblHeader.getRowCount() > 0 && rowPalingAtas < tblHeader.getRowCount()) {
                 tblHeader.setRowSelectionInterval(rowPalingAtas, rowPalingAtas);
-            }else{
-                if(tblHeader.getRowCount()>0)
-                    tblHeader.setRowSelectionInterval(rowPalingAtas-1, rowPalingAtas-1);
-                else{
-                    ((DefaultTableModel)tblHeader.getModel()).addRow(new Object[]{
+            } else {
+                if (tblHeader.getRowCount() > 0) {
+                    tblHeader.setRowSelectionInterval(rowPalingAtas - 1, rowPalingAtas - 1);
+                } else {
+                    ((DefaultTableModel) tblHeader.getModel()).addRow(new Object[]{
                         1, "N", 1, 0
                     });
                     tblHeader.setRowSelectionInterval(0, 0);
                     tblHeader.requestFocus();
                 }
             }
-            if(tblHeader.getSelectedRow()>=0)
+            if (tblHeader.getSelectedRow() >= 0) {
                 tblHeader.changeSelection(tblHeader.getSelectedRow(), 0, false, false);
+            }
         }
     }//GEN-LAST:event_tblHeaderKeyPressed
 
-    private void removeItemDetail(String sNoR){
-        TableColumnModel colD=tblDetail.getColumnModel();
-        for(int i=0; i<modelDetail.getRowCount(); i++){
-            if(modelDetail.getValueAt(i, colD.getColumnIndex("NoR")).toString().equalsIgnoreCase(
-                    sNoR)){
-                 modelDetail.removeRow(i);
+    private void removeItemDetail(String sNoR) {
+        TableColumnModel colD = tblDetail.getColumnModel();
+        for (int i = 0; i < modelDetail.getRowCount(); i++) {
+            if (modelDetail.getValueAt(i, colD.getColumnIndex("NoR")).toString().equalsIgnoreCase(
+                    sNoR)) {
+                modelDetail.removeRow(i);
             }
         }
     }
@@ -1913,8 +2034,9 @@ public class FrmPenjualan extends javax.swing.JFrame {
         btnCancel.setText("Cancel");
         btnSave.setEnabled(true);
         btnNew.setEnabled(false);
-        if(!txtNamaPelanggan.isFocusOwner())
-            txtNamaPelanggan.requestFocus();
+        if (!txtNama.isFocusOwner()) {
+            txtNama.requestFocus();
+        }
 }//GEN-LAST:event_btnNewActionPerformed
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
@@ -1922,13 +2044,15 @@ public class FrmPenjualan extends javax.swing.JFrame {
 }//GEN-LAST:event_btnSaveActionPerformed
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
-        if(btnCancel.getText().equalsIgnoreCase("cancel")){
-            if(getTitle().indexOf("Koreksi")>0) dispose();
+        if (btnCancel.getText().equalsIgnoreCase("cancel")) {
+            if (getTitle().indexOf("Koreksi") > 0) {
+                dispose();
+            }
             btnSave.setEnabled(false);
             btnNew.setEnabled(true);
             btnCancel.setText("Exit");
             btnCancel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/Icon/32/cross.png")));
-        }else{
+        } else {
             this.dispose();
         }
 }//GEN-LAST:event_btnCancelActionPerformed
@@ -1942,51 +2066,40 @@ public class FrmPenjualan extends javax.swing.JFrame {
 }//GEN-LAST:event_txtCatatanKeyReleased
 
     private void cmbCustPembayaranItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbCustPembayaranItemStateChanged
-        jLabel11.setVisible(cmbCustPembayaran.getSelectedIndex()==1);
-        jFJtTempo.setVisible(cmbCustPembayaran.getSelectedIndex()==1);
-        txtTop.setVisible(cmbCustPembayaran.getSelectedIndex()==1);
-        jLabel12.setVisible(cmbCustPembayaran.getSelectedIndex()==1);
-        jLabel13.setVisible(cmbCustPembayaran.getSelectedIndex()==1);
+        jLabel11.setVisible(cmbCustPembayaran.getSelectedIndex() == 1);
+        jFJtTempo.setVisible(cmbCustPembayaran.getSelectedIndex() == 1);
+        txtTop.setVisible(cmbCustPembayaran.getSelectedIndex() == 1);
+        jLabel12.setVisible(cmbCustPembayaran.getSelectedIndex() == 1);
+        jLabel13.setVisible(cmbCustPembayaran.getSelectedIndex() == 1);
         setDueDate();
 }//GEN-LAST:event_cmbCustPembayaranItemStateChanged
 
-    private void txtNamaPelangganKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNamaPelangganKeyReleased
-        fn.setClearIfNotFound(false);
-        fn.lookup(evt, new Object[]{txtAlamatPelanggan, txtKodePelanggan},
-                "select coalesce(nama_pelanggan,'') as nama_customer, "
-                + "coalesce(alamat,'') ||' - '||coalesce(k.nama_kota,'') as alamat, p.kode_pelanggan "
-                + "from pelanggan p "
-                + "left join kota k on k.kode_kota=p.kode_kota " +
-                "where kode_pelanggan||coalesce(nama_pelanggan,'') ilike '%"+txtNamaPelanggan.getText()+"%'", 500, 200);
-}//GEN-LAST:event_txtNamaPelangganKeyReleased
-
     private void udfNewCustomer() {
-        DlgPasien fMaster=new DlgPasien(this, true);
+        DlgPasien fMaster = new DlgPasien(this, true);
         fMaster.setTitle("Pasien/ Customer baru");
-        fMaster.setConn(conn);
         fMaster.setSrcForm(this);
         fMaster.setVisible(true);
-        if(fMaster.isSelected()){
-            txtNamaPelanggan.setText(fMaster.getNamaPelanggan());
-            txtKodePelanggan.setText(fMaster.getKodePelanggan());
-            txtAlamatPelanggan.setText(fMaster.getAlamatPelanggan());
+        if (fMaster.isSelected()) {
+            txtNama.setText(fMaster.getNama());
+            txtNorm.setText(fMaster.getNorm());
+            txtAlamat.setText(fMaster.getAlamat());
         }
     }
-    
-    private void udfSimpanDokter(){
-        try{
+
+    private void udfSimpanDokter() {
+        try {
             conn.setAutoCommit(false);
-            ResultSet rs=conn.createStatement().executeQuery(
-                    "select fn_dokter_save('', " +
-                    "'"+txtDokter.getText()+"', '', '', " +
-                    "'', " +
-                    "'', '', '')");
+            ResultSet rs = conn.createStatement().executeQuery(
+                    "select fn_dokter_save('', "
+                    + "'" + txtDokter.getText() + "', '', '', "
+                    + "'', "
+                    + "'', '', '')");
             conn.setAutoCommit(true);
-            if(rs.next()){
+            if (rs.next()) {
                 lblDokter.setText(rs.getString(1));
             }
             rs.close();
-        }catch(SQLException se){
+        } catch (SQLException se) {
             try {
                 JOptionPane.showMessageDialog(this, se.getMessage());
                 conn.rollback();
@@ -1995,53 +2108,52 @@ public class FrmPenjualan extends javax.swing.JFrame {
             }
         }
     }
-    
-    private void btnAccCustMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAccCustMouseClicked
-        udfNewCustomer();
-}//GEN-LAST:event_btnAccCustMouseClicked
-
-    private void btnAccCustActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAccCustActionPerformed
-        
-}//GEN-LAST:event_btnAccCustActionPerformed
 
     private void txtDokterKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtDokterKeyReleased
         fn.lookup(evt, new Object[]{lblDokter},
-                "select coalesce(nama,'') as nama_dokter, kode_dokter from dokter " +
-                "where kode_dokter||coalesce(nama,'') ilike '%"+txtDokter.getText()+"%'", 500, 200);
+                "select coalesce(nama,'') as nama_dokter, kode_dokter from dokter "
+                + "where kode_dokter||coalesce(nama,'') ilike '%" + txtDokter.getText() + "%'", 500, 200);
 }//GEN-LAST:event_txtDokterKeyReleased
 
     private void udfNewDokter() {
-        DlgDokter fMaster=new DlgDokter(this, true);
+        DlgDokter fMaster = new DlgDokter(this, true);
         fMaster.setTitle("Data dokter baru");
         fMaster.setConn(conn);
         fMaster.setSrcForm(this);
         fMaster.setVisible(true);
-        if(fMaster.isSelected()){
+        if (fMaster.isSelected()) {
             txtDokter.setText(fMaster.getNamaDokter());
             lblDokter.setText(fMaster.getKodeDokter());
         }
     }
-    
+
     private void btnAddDokterMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddDokterMouseClicked
         udfNewDokter();
 }//GEN-LAST:event_btnAddDokterMouseClicked
 
     private void btnAddDokterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddDokterActionPerformed
-        
+
 }//GEN-LAST:event_btnAddDokterActionPerformed
 
-    private void btnAccCust1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAccCust1MouseClicked
+    private void btnLookupPasienMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnLookupPasienMouseClicked
         // TODO add your handling code here:
-    }//GEN-LAST:event_btnAccCust1MouseClicked
+    }//GEN-LAST:event_btnLookupPasienMouseClicked
 
-    private void btnAccCust1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAccCust1ActionPerformed
+    private void btnLookupPasienActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLookupPasienActionPerformed
         lookupPasien();
-    }//GEN-LAST:event_btnAccCust1ActionPerformed
+    }//GEN-LAST:event_btnLookupPasienActionPerformed
 
-    
+    private void cmbTipeTarifItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbTipeTarifItemStateChanged
+        sesuaikanHargaJual();
+    }//GEN-LAST:event_cmbTipeTarifItemStateChanged
+
+    private void txtNoTrxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNoTrxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNoTrxActionPerformed
+
     /**
-    * @param args the command line arguments
-    */
+     * @param args the command line arguments
+     */
     public static void main(String args[]) {
 //        try{
 //                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
@@ -2059,13 +2171,13 @@ public class FrmPenjualan extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAccCust;
-    private javax.swing.JButton btnAccCust1;
     private javax.swing.JButton btnAddDokter;
     private javax.swing.JButton btnCancel;
+    private javax.swing.JButton btnLookupPasien;
     private javax.swing.JButton btnNew;
     private javax.swing.JButton btnSave;
     private javax.swing.JComboBox cmbCustPembayaran;
+    private javax.swing.JComboBox cmbTipeTarif;
     private javax.swing.JFormattedTextField jFJtTempo;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -2079,10 +2191,13 @@ public class FrmPenjualan extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
+    private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -2092,64 +2207,72 @@ public class FrmPenjualan extends javax.swing.JFrame {
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JTextField lblDokter;
     private javax.swing.JLabel lblNett;
+    private javax.swing.JLabel lblNoReg;
     private javax.swing.JLabel lblTgl;
     private javax.swing.JLabel lblTotal;
     private javax.swing.JTable table;
     private javax.swing.JTable tblDetail;
     private javax.swing.JTable tblHeader;
-    private javax.swing.JTextField txtAlamatPelanggan;
+    private javax.swing.JTextField txtAlamat;
     private javax.swing.JTextField txtCatatan;
     private javax.swing.JTextField txtDiskon;
+    private javax.swing.JTextField txtDiskonPersen;
     private javax.swing.JTextField txtDokter;
-    private javax.swing.JTextField txtKodePelanggan;
-    private javax.swing.JTextField txtNamaPelanggan;
+    private javax.swing.JTextField txtNama;
     private javax.swing.JTextField txtNoTrx;
+    private javax.swing.JTextField txtNorm;
     private javax.swing.JTextField txtTop;
     // End of variables declaration//GEN-END:variables
-    
-    private void insertItem(){
-        String item=lookupItem.getKodeBarang();
-//        double saldo=itemDao.getSaldo(item, sSiteID);
-        
-//        if(saldo >0){
-            Barang barang=itemDao.getBarangByKode(item);
-            ((DefaultTableModel)tblDetail.getModel()).addRow(new Object[]{
-                    item,
-                    barang.getNamaPaten(), //Nama Barang
-                    barang.getSatuanKecil(), //UOM
-                    1,  //Qty Jual
-                    barang.getHargaJual(),  //Harga
-                    0,  //Diskon
-                    barang.getHargaJual(),  //Sub Total
-                    tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString()+"#"+tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString(),
-                    false
-                });
-                tblDetail.requestFocus();
-                if(tblDetail.getRowCount()>0){
-                    tblDetail.setRowSelectionInterval(tblDetail.getRowCount()-1, tblDetail.getRowCount()-1);
-                    tblDetail.changeSelection(tblDetail.getSelectedRow(), tblDetail.getColumnModel().getColumnIndex("Qty Jual"), 
-                            false, false);
 
-                }
-                //tblDetail.setValueAt(lookupItem.getKodeBarang(), tblDetail.getSelectedRow(), 0);
+    private void insertItem() {
+        String item = lookupItem.getKodeBarang();
+//        double saldo=itemDao.getSaldo(item, sSiteID);
+
+//        if(saldo >0){
+        Barang barang = itemDao.getBarangByKode(item, cmbTipeTarif.getSelectedItem().toString());
+        double harga=cmbTipeTarif.getSelectedItem().toString().equalsIgnoreCase("KLINIK")? barang.getHargaKlinik(): barang.getHargaReseller();
+        ((DefaultTableModel) tblDetail.getModel()).addRow(new Object[]{
+            item,
+            barang.getNamaPaten(), //Nama Barang
+            barang.getSatuanKecil(), //UOM
+            1, //Qty Jual
+            harga, //Harga
+            0, //Diskon
+            harga, //Sub Total
+            tblHeader.getValueAt(tblHeader.getSelectedRow(), 1).toString() + "#" + tblHeader.getValueAt(tblHeader.getSelectedRow(), 0).toString(),
+            false
+        });
+        tblDetail.requestFocus();
+        if (tblDetail.getRowCount() > 0) {
+            tblDetail.setRowSelectionInterval(tblDetail.getRowCount() - 1, tblDetail.getRowCount() - 1);
+            tblDetail.changeSelection(tblDetail.getSelectedRow(), tblDetail.getColumnModel().getColumnIndex("Qty Jual"),
+                    false, false);
+
+        }
+        //tblDetail.setValueAt(lookupItem.getKodeBarang(), tblDetail.getSelectedRow(), 0);
 //        }else{
 //            JOptionPane.showMessageDialog(this, "Saldo Tidak Cukup!\n"
 //                    + "Saldo komputer="+saldo);
 //        }
     }
-    
-    public void setDiskon(double  diskon){
+
+    public void setDiskon(double diskon) {
+        
         txtDiskon.setText(fn.intFmt.format(diskon));
+        double discPersen=fn.udfGetDouble(txtDiskon.getText())/fn.udfGetDouble(lblTotal.getText())*100;
+        if(discPersen!=fn.udfGetDouble(txtDiskonPersen.getText())){
+            txtDiskonPersen.setText("0");
+        }
         udfSetTotal();
     }
-    
-    private void lookupPasien(){
-        DLgLookup d1=new DLgLookup(JOptionPane.getFrameForComponent(aThis), true);
-        String sSupplier="";
-        
-        String s="select * from (" +
-                "select kode_pelanggan as kode, coalesce(nama_pelanggan,'') as nama, coalesce(to_char(tgl_lahir, 'dd/MM/yyyy'), '') as tgl_lahir, coalesce(alamat,'') as alamat \n" +
-                "from pelanggan order by 2) x ";
+
+    private void lookupPasien() {
+        DLgLookup d1 = new DLgLookup(JOptionPane.getFrameForComponent(aThis), true);
+        String sSupplier = "";
+
+        String s = "select * from ("
+                + "select norm as kode, coalesce(nama,'') as nama, coalesce(to_char(tgl_lahir, 'dd/MM/yyyy'), '') as tgl_lahir, coalesce(alamat_domisili,'') as alamat \n"
+                + "from rm_pasien order by 2) x ";
 
         //System.out.println(s);
 //                    ((DefaultTableModel)tblSupplier.getModel()).setNumRows(tblSupplier.getRowCount()+1);
@@ -2160,13 +2283,13 @@ public class FrmPenjualan extends javax.swing.JFrame {
         d1.setVisible(true);
 
         //System.out.println("Kode yang dipilih" +d1.getKode());
-        if(d1.getKode().length()>0){
-            TableColumnModel col=d1.getTable().getColumnModel();
-            JTable tbl=d1.getTable();
+        if (d1.getKode().length() > 0) {
+            TableColumnModel col = d1.getTable().getColumnModel();
+            JTable tbl = d1.getTable();
             int iRow = tbl.getSelectedRow();
-            txtKodePelanggan.setText(tbl.getValueAt(iRow, col.getColumnIndex("kode")).toString());
-            txtNamaPelanggan.setText(tbl.getValueAt(iRow, col.getColumnIndex("nama")).toString());
-            txtAlamatPelanggan.setText(tbl.getValueAt(iRow, col.getColumnIndex("alamat")).toString());
+            txtNorm.setText(tbl.getValueAt(iRow, col.getColumnIndex("kode")).toString());
+            txtNama.setText(tbl.getValueAt(iRow, col.getColumnIndex("nama")).toString());
+            txtAlamat.setText(tbl.getValueAt(iRow, col.getColumnIndex("alamat")).toString());
         }
     }
 }

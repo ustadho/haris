@@ -45,7 +45,8 @@ public class Barang {
     private String userUpd;
     private Date timeUpd;
     private double on_order ;
-    private double hargaJual;
+    private double hargaKlinik;
+    private double hargaReseller;
     private List<BarangPaket> listPaket=new ArrayList<BarangPaket>();
 
     public String getItemCode() {
@@ -288,12 +289,20 @@ public class Barang {
         this.on_order = on_order;
     }
 
-    public void setHargaJual(double d) {
-        this.hargaJual=d;
+    public double getHargaKlinik() {
+        return hargaKlinik;
     }
-    
-    public double getHargaJual(){
-        return this.hargaJual;
+
+    public void setHargaKlinik(double hargaKlinik) {
+        this.hargaKlinik = hargaKlinik;
+    }
+
+    public double getHargaReseller() {
+        return hargaReseller;
+    }
+
+    public void setHargaReseller(double hargaReseller) {
+        this.hargaReseller = hargaReseller;
     }
 
     public List<BarangPaket> getListPaket() {

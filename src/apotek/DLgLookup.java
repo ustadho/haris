@@ -245,30 +245,32 @@ public class DLgLookup extends javax.swing.JDialog {
             }
         ));
         tblList.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
-        tblList.setFont(new java.awt.Font("Tahoma", 0, 12));
+        tblList.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         tblList.getTableHeader().setReorderingAllowed(false);
         jScrollPane1.setViewportView(tblList);
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 12));
+        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel1.setText("Search :");
 
-        txtSearch.setFont(new java.awt.Font("Tahoma", 0, 12));
+        txtSearch.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 txtSearchKeyReleased(evt);
             }
         });
 
-        btnClose.setFont(new java.awt.Font("Tahoma", 0, 12));
-        btnClose.setText("Close");
+        btnClose.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        btnClose.setText("Tutup");
+        btnClose.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnClose.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCloseActionPerformed(evt);
             }
         });
 
-        btnSelect.setFont(new java.awt.Font("Tahoma", 0, 12));
-        btnSelect.setText("Select");
+        btnSelect.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        btnSelect.setText("Pilih");
+        btnSelect.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnSelect.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSelectActionPerformed(evt);
@@ -282,15 +284,15 @@ public class DLgLookup extends javax.swing.JDialog {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 557, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 700, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtSearch, javax.swing.GroupLayout.DEFAULT_SIZE, 310, Short.MAX_VALUE)
+                        .addComponent(txtSearch, javax.swing.GroupLayout.DEFAULT_SIZE, 453, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btnSelect, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnClose, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnClose, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -307,8 +309,8 @@ public class DLgLookup extends javax.swing.JDialog {
                 .addContainerGap())
         );
 
-        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width-593)/2, (screenSize.height-302)/2, 593, 302);
+        setSize(new java.awt.Dimension(736, 302));
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCloseActionPerformed

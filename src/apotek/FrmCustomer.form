@@ -58,9 +58,10 @@
         <Component class="javax.swing.JTable" name="jTable1">
           <Properties>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-              <Table columnCount="4" rowCount="0">
+              <Table columnCount="5" rowCount="0">
                 <Column editable="false" title="Kode" type="java.lang.Object"/>
                 <Column editable="false" title="Nama" type="java.lang.Object"/>
+                <Column editable="false" title="Tgl. Lahir" type="java.lang.Object"/>
                 <Column editable="false" title="Alamat" type="java.lang.Object"/>
                 <Column editable="false" title="Telepon" type="java.lang.Object"/>
               </Table>
@@ -166,7 +167,7 @@
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/resources/Icon/buttons/edit-32.png"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Update"/>
+                <Property name="text" type="java.lang.String" value="Edit"/>
                 <Property name="enabled" type="boolean" value="false"/>
                 <Property name="horizontalTextPosition" type="int" value="0"/>
                 <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">

@@ -24,15 +24,14 @@ import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFormattedTextField;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.text.MaskFormatter;
 import main.GeneralFunction;
 
 /**
@@ -45,6 +44,7 @@ public class DlgDokter extends javax.swing.JDialog {
     private Object srcForm;
     MyKeyListener kListener=new MyKeyListener();
     private boolean isSelected=false;
+    List<String> listUser=new ArrayList<String>();
     
 
     /** Creates new form DlgPasien */
@@ -90,10 +90,12 @@ public class DlgDokter extends javax.swing.JDialog {
                 txtKode.setText(rs.getString(1));
                 isSelected=true;
                 JOptionPane.showMessageDialog(this, "Simpan dokter sukses!");
-                
             }
-            if(srcForm instanceof FrmPenjualan2)
+            if(srcForm instanceof FrmPenjualan2){
                 ((FrmPenjualan2)srcForm).setDokter(txtKode.getText(), txtNama.getText());
+            }else if(srcForm instanceof FrmDokterList){
+                ((FrmDokterList)srcForm).udfFilter(txtKode.getText());
+            }
             this.dispose();
         }catch(SQLException se){
             try {
@@ -129,8 +131,9 @@ public class DlgDokter extends javax.swing.JDialog {
         txtGelarBelakang = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
         txtAlamatPraktek = new javax.swing.JTextField();
-        jLabel9 = new javax.swing.JLabel();
         txtTelpPraktek = new javax.swing.JTextField();
+        jLabel10 = new javax.swing.JLabel();
+        lblUserId = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         btnSimpan = new javax.swing.JButton();
         btnTutup = new javax.swing.JButton();
@@ -152,10 +155,10 @@ public class DlgDokter extends javax.swing.JDialog {
         txtKode.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         txtKode.setDisabledTextColor(new java.awt.Color(0, 0, 0));
         txtKode.setEnabled(false);
-        jPanel1.add(txtKode, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 10, 55, 22));
+        jPanel1.add(txtKode, new org.netbeans.lib.awtextra.AbsoluteConstraints(125, 10, 55, 22));
 
         txtNama.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanel1.add(txtNama, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 35, 335, 22));
+        jPanel1.add(txtNama, new org.netbeans.lib.awtextra.AbsoluteConstraints(125, 35, 375, 22));
 
         jLabel2.setText("Nama");
         jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 35, 50, 20));
@@ -164,40 +167,41 @@ public class DlgDokter extends javax.swing.JDialog {
         jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 50, 20));
 
         txtAlamat.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanel1.add(txtAlamat, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 60, 335, 22));
+        jPanel1.add(txtAlamat, new org.netbeans.lib.awtextra.AbsoluteConstraints(125, 60, 375, 22));
 
         jLabel4.setText("Telp");
         jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 85, 50, 20));
 
         txtTelp.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanel1.add(txtTelp, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 85, 125, 22));
+        jPanel1.add(txtTelp, new org.netbeans.lib.awtextra.AbsoluteConstraints(125, 85, 105, 22));
 
         jLabel7.setText("Gelar Dpn.");
-        jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 10, 70, 20));
+        jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 10, 95, 20));
 
         txtGelarDepan.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanel1.add(txtGelarDepan, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 10, 50, 22));
+        jPanel1.add(txtGelarDepan, new org.netbeans.lib.awtextra.AbsoluteConstraints(265, 10, 50, 22));
 
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel8.setText("Gelar Blkg. ");
-        jPanel1.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(295, 10, 75, 20));
+        jPanel1.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 10, 85, 20));
 
         txtGelarBelakang.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanel1.add(txtGelarBelakang, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 10, 70, 22));
+        jPanel1.add(txtGelarBelakang, new org.netbeans.lib.awtextra.AbsoluteConstraints(405, 10, 60, 22));
 
         jLabel5.setText("Alamat Praktek");
-        jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 100, 20));
+        jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 115, 20));
 
         txtAlamatPraktek.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanel1.add(txtAlamatPraktek, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 120, 335, 22));
-
-        jLabel9.setText("Telp. Praktek");
-        jPanel1.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 145, 90, 20));
+        jPanel1.add(txtAlamatPraktek, new org.netbeans.lib.awtextra.AbsoluteConstraints(125, 120, 375, 22));
 
         txtTelpPraktek.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanel1.add(txtTelpPraktek, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 145, 145, 22));
+        jPanel1.add(txtTelpPraktek, new org.netbeans.lib.awtextra.AbsoluteConstraints(125, 145, 125, 22));
 
-        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 450, 180));
+        jLabel10.setText("Telp. Praktek");
+        jPanel1.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 145, 105, 20));
+        jPanel1.add(lblUserId, new org.netbeans.lib.awtextra.AbsoluteConstraints(375, 170, 65, 20));
+
+        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 510, 190));
 
         jLabel6.setBackground(new java.awt.Color(0, 0, 153));
         jLabel6.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
@@ -205,7 +209,7 @@ public class DlgDokter extends javax.swing.JDialog {
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel6.setText("DOKTER");
         jLabel6.setOpaque(true);
-        getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 450, 40));
+        getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 510, 40));
 
         btnSimpan.setText("Simpan");
         btnSimpan.setMargin(new java.awt.Insets(2, 2, 2, 2));
@@ -214,7 +218,7 @@ public class DlgDokter extends javax.swing.JDialog {
                 btnSimpanActionPerformed(evt);
             }
         });
-        getContentPane().add(btnSimpan, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 250, 70, 30));
+        getContentPane().add(btnSimpan, new org.netbeans.lib.awtextra.AbsoluteConstraints(375, 260, 70, 30));
 
         btnTutup.setText("Tutup");
         btnTutup.setMargin(new java.awt.Insets(2, 2, 2, 2));
@@ -223,9 +227,9 @@ public class DlgDokter extends javax.swing.JDialog {
                 btnTutupActionPerformed(evt);
             }
         });
-        getContentPane().add(btnTutup, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 250, 70, 30));
+        getContentPane().add(btnTutup, new org.netbeans.lib.awtextra.AbsoluteConstraints(445, 260, 70, 30));
 
-        setSize(new java.awt.Dimension(483, 328));
+        setSize(new java.awt.Dimension(537, 328));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -246,16 +250,17 @@ public class DlgDokter extends javax.swing.JDialog {
         
         if(txtKode.getText().length() > 0){
             try{
+                ResultSet rs = null;
+                
                 String sQry="SELECT kode_dokter, coalesce(nama,'') as nama_pasien, "
                         + "coalesce(gelar_depan, '') as gelar_depan, coalesce(gelar_belakang,'') as gelar_belakang, "
-                        + ""
                         + "coalesce(alamat,'') as alamat, coalesce(telepon,'') as telp,"
                         + "coalesce(alamat_praktek,'') as alamat_praktek, coalesce(telp_praktek, '') as telp_praktek "
-                    + "FROM dokter "
-                    + "where kode_dokter= '"+txtKode.getText()+"' "
-                    + "";
+                        + "FROM rm_dokter d "
+                        + "where kode_dokter= '"+txtKode.getText()+"' "
+                        + "";
                 
-                ResultSet rs=conn.createStatement().executeQuery(sQry);
+                rs=conn.createStatement().executeQuery(sQry);
                 if(rs.next()){
                     txtKode.setText(rs.getString("kode_dokter"));
                     txtNama.setText(rs.getString("nama_pasien"));
@@ -296,6 +301,7 @@ public class DlgDokter extends javax.swing.JDialog {
     private javax.swing.JButton btnSimpan;
     private javax.swing.JButton btnTutup;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -303,8 +309,8 @@ public class DlgDokter extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JLabel lblUserId;
     private javax.swing.JTextField txtAlamat;
     private javax.swing.JTextField txtAlamatPraktek;
     private javax.swing.JTextField txtGelarBelakang;

@@ -35,6 +35,7 @@ import penjualan.FrmPenjualan2;
 import apotek.master.FrmSupplier;
 import apotek.master.FrmUOM;
 import apotek.master.FrmBentuk;
+import apotek.master.FrmDiskonEvent;
 import apotek.master.FrmGroup;
 import apotek.master.FrmGudang;
 import apotek.master.FrmItemDummyList;
@@ -43,6 +44,7 @@ import apotek.master.FrmJenisSupplier;
 import apotek.master.FrmManufaktur;
 import apotek.pettycash.FrmPettyCash;
 import apotek.pettycash.FrmPettyCashList;
+import com.klinik.dokter.FrmRegList;
 import com.klinik.rm.DlgLookupPasien;
 import java.awt.Cursor;
 import java.awt.Font;
@@ -90,11 +92,15 @@ public class MainForm extends javax.swing.JFrame {
     public static Connection conn;
     static int iLeft, iTop;
     public static String sKodeGudang = "", sNamaGudang = "";
+    public static String formatTgl="dd-MM-YYYY";
     SysConfig sc = new SysConfig();
     private Timer timer;
     public static Image imageIcon;
     public static Setting setting=new Setting();
     private SettingDao settingDao=new SettingDao();
+    public static String sKodeDokter="";
+    public static String sNamaDokter="";
+    public static String sCatatanKwt="";
     /**
      * Creates new form NewJFrame
      */
@@ -383,7 +389,7 @@ public class MainForm extends javax.swing.JFrame {
 
     public void setUserName(String s) {
         sUserName = s;
-        lblUserName.setText(s);
+        
     }
 
     public boolean udfExistForm(JInternalFrame obj) {
@@ -673,6 +679,7 @@ public class MainForm extends javax.swing.JFrame {
         mnuFileUserManagement = new javax.swing.JMenuItem();
         mnuFileMenuGrouping = new javax.swing.JMenuItem();
         mnuFileMenuAuth = new javax.swing.JMenuItem();
+        mnuFileDiskonPromo = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JSeparator();
         jMenuItemAnggota = new javax.swing.JMenuItem();
         mnuUbahPassword = new javax.swing.JMenuItem();
@@ -696,16 +703,20 @@ public class MainForm extends javax.swing.JFrame {
         jSeparator16 = new javax.swing.JPopupMenu.Separator();
         mnuManufaktur = new javax.swing.JMenuItem();
         mnuMasterBarang1 = new javax.swing.JMenuItem();
-        mnuSetting = new javax.swing.JMenu();
-        jSeparator7 = new javax.swing.JSeparator();
-        mnuInvSO = new javax.swing.JMenuItem();
-        jSeparator9 = new javax.swing.JPopupMenu.Separator();
-        mnuInvTransfer = new javax.swing.JMenuItem();
-        mnuInvTransferHistory = new javax.swing.JMenuItem();
-        jSeparator10 = new javax.swing.JPopupMenu.Separator();
-        mnuInvReceiptUnplanned = new javax.swing.JMenuItem();
-        mnuInvIssueUnplanned = new javax.swing.JMenuItem();
-        jMenu1 = new javax.swing.JMenu();
+        mnuKlinik = new javax.swing.JMenu();
+        mnuKlinikReservasi = new javax.swing.JMenuItem();
+        jMenuItem4 = new javax.swing.JMenuItem();
+        mnuKlinikRegistrasiPasienLookup = new javax.swing.JMenuItem();
+        mnuPenjualan = new javax.swing.JMenu();
+        mnuTrxPenjualan = new javax.swing.JMenuItem();
+        jSeparator13 = new javax.swing.JPopupMenu.Separator();
+        mnuAR1 = new javax.swing.JMenuItem();
+        mnuAR = new javax.swing.JMenuItem();
+        jMenu3 = new javax.swing.JMenu();
+        mnuJualKoreksiTrx = new javax.swing.JMenuItem();
+        mnuListPenjualan = new javax.swing.JMenuItem();
+        mnuListPenjualanRetur = new javax.swing.JMenuItem();
+        mnuPembelian = new javax.swing.JMenu();
         mnuPR = new javax.swing.JMenuItem();
         mnuPRApproval = new javax.swing.JMenuItem();
         mnuPRMaintenance = new javax.swing.JMenuItem();
@@ -726,23 +737,19 @@ public class MainForm extends javax.swing.JFrame {
         jSeparator3 = new javax.swing.JPopupMenu.Separator();
         mnuTrxBayarSupplier = new javax.swing.JMenuItem();
         mnuAPJatuhTempo = new javax.swing.JMenuItem();
-        mnuPenjualan = new javax.swing.JMenu();
-        mnuTrxPenjualan = new javax.swing.JMenuItem();
-        jSeparator13 = new javax.swing.JPopupMenu.Separator();
-        mnuAR1 = new javax.swing.JMenuItem();
-        mnuAR = new javax.swing.JMenuItem();
-        jMenu3 = new javax.swing.JMenu();
-        mnuJualKoreksiTrx = new javax.swing.JMenuItem();
-        mnuListPenjualan = new javax.swing.JMenuItem();
-        mnuListPenjualanRetur = new javax.swing.JMenuItem();
+        mnuPersediaan = new javax.swing.JMenu();
+        jSeparator7 = new javax.swing.JSeparator();
+        mnuInvSO = new javax.swing.JMenuItem();
+        jSeparator9 = new javax.swing.JPopupMenu.Separator();
+        mnuInvTransfer = new javax.swing.JMenuItem();
+        mnuInvTransferHistory = new javax.swing.JMenuItem();
+        jSeparator10 = new javax.swing.JPopupMenu.Separator();
+        mnuInvReceiptUnplanned = new javax.swing.JMenuItem();
+        mnuInvIssueUnplanned = new javax.swing.JMenuItem();
         mnuKeuPC = new javax.swing.JMenu();
         mnuKeuPCKeluar = new javax.swing.JMenuItem();
         mnuKeuPCMasuk = new javax.swing.JMenuItem();
         mnuKeuPCList = new javax.swing.JMenuItem();
-        mnuTrx = new javax.swing.JMenu();
-        mnuToolsLookupItemJual = new javax.swing.JMenuItem();
-        mnuToolsLookupItemBeli = new javax.swing.JMenuItem();
-        mnuKalkulator = new javax.swing.JMenuItem();
         mnuRpt = new javax.swing.JMenu();
         mnuRptKasir = new javax.swing.JMenuItem();
         jSeparator6 = new javax.swing.JSeparator();
@@ -750,11 +757,10 @@ public class MainForm extends javax.swing.JFrame {
         mnuRptPenjualan = new javax.swing.JMenuItem();
         mnuRptPembelian = new javax.swing.JMenuItem();
         mnuRptKeuangan = new javax.swing.JMenuItem();
-        jMenu4 = new javax.swing.JMenu();
-        jMenuItem3 = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
-        jMenuItem1 = new javax.swing.JMenuItem();
-        jMenuItem2 = new javax.swing.JMenuItem();
+        mnuTool = new javax.swing.JMenu();
+        mnuToolsLookupItemJual = new javax.swing.JMenuItem();
+        mnuToolsLookupItemBeli = new javax.swing.JMenuItem();
+        mnuKalkulator = new javax.swing.JMenuItem();
         mnuHelp = new javax.swing.JMenu();
         jMenuHelpAbout = new javax.swing.JMenuItem();
 
@@ -778,13 +784,13 @@ public class MainForm extends javax.swing.JFrame {
             }
         });
         jSplitPane1.addAncestorListener(new javax.swing.event.AncestorListener() {
+            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
+                jSplitPane1AncestorMoved(evt);
+            }
             public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
                 jSplitPane1AncestorAdded(evt);
             }
             public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
-            }
-            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
-                jSplitPane1AncestorMoved(evt);
             }
         });
 
@@ -921,7 +927,7 @@ public class MainForm extends javax.swing.JFrame {
         mnuFile.setMnemonic('1');
         mnuFile.setText("1. File");
 
-        mnuFileUserManagement.setText("User Management");
+        mnuFileUserManagement.setText("Pengguna");
         mnuFileUserManagement.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuFileUserManagementActionPerformed(evt);
@@ -944,6 +950,14 @@ public class MainForm extends javax.swing.JFrame {
             }
         });
         mnuFile.add(mnuFileMenuAuth);
+
+        mnuFileDiskonPromo.setText("Diskon & Promo");
+        mnuFileDiskonPromo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuFileDiskonPromoActionPerformed(evt);
+            }
+        });
+        mnuFile.add(mnuFileDiskonPromo);
         mnuFile.add(jSeparator1);
 
         jMenuItemAnggota.setText("Login");
@@ -1098,195 +1112,39 @@ public class MainForm extends javax.swing.JFrame {
 
         jMenuBar2.add(mnuMaster);
 
-        mnuSetting.setMnemonic('3');
-        mnuSetting.setText("3. Persediaan");
-        mnuSetting.add(jSeparator7);
+        mnuKlinik.setMnemonic('3');
+        mnuKlinik.setText("3. Klinik");
 
-        mnuInvSO.setText("Stok Opname");
-        mnuInvSO.addActionListener(new java.awt.event.ActionListener() {
+        mnuKlinikReservasi.setText("Reservasi");
+        mnuKlinikReservasi.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuInvSOActionPerformed1(evt);
+                mnuKlinikReservasiActionPerformed(evt);
             }
         });
-        mnuSetting.add(mnuInvSO);
-        mnuSetting.add(jSeparator9);
+        mnuKlinik.add(mnuKlinikReservasi);
 
-        mnuInvTransfer.setText("Transfer Barang");
-        mnuInvTransfer.addActionListener(new java.awt.event.ActionListener() {
+        jMenuItem4.setText("Daftar Registrasi Pasien");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuInvTransferActionPerformed1(evt);
+                jMenuItem4ActionPerformed(evt);
             }
         });
-        mnuSetting.add(mnuInvTransfer);
+        mnuKlinik.add(jMenuItem4);
 
-        mnuInvTransferHistory.setText("Histori Transfer Barang");
-        mnuInvTransferHistory.addActionListener(new java.awt.event.ActionListener() {
+        mnuKlinikRegistrasiPasienLookup.setText("Pencarian Pasien");
+        mnuKlinikRegistrasiPasienLookup.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuInvTransferHistoryActionPerformed1(evt);
+                mnuKlinikRegistrasiPasienLookupActionPerformed(evt);
             }
         });
-        mnuSetting.add(mnuInvTransferHistory);
-        mnuSetting.add(jSeparator10);
+        mnuKlinik.add(mnuKlinikRegistrasiPasienLookup);
 
-        mnuInvReceiptUnplanned.setText("Penerimaan Barang - Lain");
-        mnuInvReceiptUnplanned.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuInvReceiptUnplannedActionPerformed(evt);
-            }
-        });
-        mnuSetting.add(mnuInvReceiptUnplanned);
+        jMenuBar2.add(mnuKlinik);
 
-        mnuInvIssueUnplanned.setText("Pengeluaran Barang - Lain");
-        mnuInvIssueUnplanned.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuInvIssueUnplannedActionPerformed(evt);
-            }
-        });
-        mnuSetting.add(mnuInvIssueUnplanned);
+        mnuPenjualan.setMnemonic('4');
+        mnuPenjualan.setText("4. Penjualan");
 
-        jMenuBar2.add(mnuSetting);
-
-        jMenu1.setMnemonic('4');
-        jMenu1.setText("4. Pembelian");
-
-        mnuPR.setText("Purchase Requistion (PR)");
-        mnuPR.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuPRActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuPR);
-
-        mnuPRApproval.setText("PR Approval");
-        mnuPRApproval.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuPRApprovalActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuPRApproval);
-
-        mnuPRMaintenance.setText("PR Maintenance");
-        mnuPRMaintenance.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuPRMaintenanceActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuPRMaintenance);
-
-        mnuPRHistory.setText("PR History");
-        mnuPRHistory.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuPRHistoryActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuPRHistory);
-        jMenu1.add(jSeparator12);
-
-        mnuPO.setText("Purchase Order - PO");
-        mnuPO.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuPOActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuPO);
-
-        mnuPOApproval.setText("PO Approval");
-        mnuPOApproval.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuPOApprovalActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuPOApproval);
-
-        mnuPORevisi.setText("Revisi PO");
-        mnuPORevisi.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuPORevisiActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuPORevisi);
-
-        mnuPOHistory.setText("PO History");
-        mnuPOHistory.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuPOHistoryActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuPOHistory);
-        jMenu1.add(jSeparator5);
-
-        mnuPOCash.setText("PO Cash");
-        mnuPOCash.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuPOCashActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuPOCash);
-
-        mnuPOCashHIstory.setText("PO Cash History");
-        mnuPOCashHIstory.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuPOCashHIstoryActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuPOCashHIstory);
-        jMenu1.add(jSeparator15);
-
-        mnuGR.setText("Penerimaan Harang");
-        mnuGR.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuGRActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuGR);
-
-        mnuGRApproval.setText("Persetujuan Penerimaan Barang");
-        mnuGRApproval.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuGRApprovalActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuGRApproval);
-
-        mnuGRHistory.setText("Histori Penerimaan Barang");
-        mnuGRHistory.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuGRHistoryActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuGRHistory);
-
-        mnuHistoriExpiredDate.setText("Histori Expired Date - Good Receipt");
-        mnuHistoriExpiredDate.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuHistoriExpiredDatejMenuItem1ActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuHistoriExpiredDate);
-        jMenu1.add(jSeparator3);
-
-        mnuTrxBayarSupplier.setText("Pembayaran Hutang ke Supplier");
-        mnuTrxBayarSupplier.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuTrxBayarSupplierjMenuItem1ActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuTrxBayarSupplier);
-
-        mnuAPJatuhTempo.setText("Hutang Jatuh Tempo");
-        mnuAPJatuhTempo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuAPJatuhTempojMenuItem1ActionPerformed(evt);
-            }
-        });
-        jMenu1.add(mnuAPJatuhTempo);
-
-        jMenuBar2.add(jMenu1);
-
-        mnuPenjualan.setMnemonic('5');
-        mnuPenjualan.setText("5. Penjualan");
-
-        mnuTrxPenjualan.setText("Resep");
+        mnuTrxPenjualan.setText("Transaksi Penjualan");
         mnuTrxPenjualan.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuTrxPenjualanjMenuItem1ActionPerformed(evt);
@@ -1295,7 +1153,7 @@ public class MainForm extends javax.swing.JFrame {
         mnuPenjualan.add(mnuTrxPenjualan);
         mnuPenjualan.add(jSeparator13);
 
-        mnuAR1.setText("Retur Resep");
+        mnuAR1.setText("Retur Penjualan");
         mnuAR1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuAR1ActionPerformed1(evt);
@@ -1341,7 +1199,193 @@ public class MainForm extends javax.swing.JFrame {
 
         jMenuBar2.add(mnuPenjualan);
 
-        mnuKeuPC.setText("6. Petty Cash");
+        mnuPembelian.setMnemonic('5');
+        mnuPembelian.setText("5. Pembelian");
+
+        mnuPR.setText("Purchase Requistion (PR)");
+        mnuPR.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuPRActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuPR);
+
+        mnuPRApproval.setText("PR Approval");
+        mnuPRApproval.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuPRApprovalActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuPRApproval);
+
+        mnuPRMaintenance.setText("PR Maintenance");
+        mnuPRMaintenance.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuPRMaintenanceActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuPRMaintenance);
+
+        mnuPRHistory.setText("PR History");
+        mnuPRHistory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuPRHistoryActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuPRHistory);
+        mnuPembelian.add(jSeparator12);
+
+        mnuPO.setText("Purchase Order - PO");
+        mnuPO.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuPOActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuPO);
+
+        mnuPOApproval.setText("PO Approval");
+        mnuPOApproval.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuPOApprovalActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuPOApproval);
+
+        mnuPORevisi.setText("Revisi PO");
+        mnuPORevisi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuPORevisiActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuPORevisi);
+
+        mnuPOHistory.setText("PO History");
+        mnuPOHistory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuPOHistoryActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuPOHistory);
+        mnuPembelian.add(jSeparator5);
+
+        mnuPOCash.setText("PO Cash");
+        mnuPOCash.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuPOCashActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuPOCash);
+
+        mnuPOCashHIstory.setText("PO Cash History");
+        mnuPOCashHIstory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuPOCashHIstoryActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuPOCashHIstory);
+        mnuPembelian.add(jSeparator15);
+
+        mnuGR.setText("Penerimaan Harang");
+        mnuGR.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuGRActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuGR);
+
+        mnuGRApproval.setText("Persetujuan Penerimaan Barang");
+        mnuGRApproval.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuGRApprovalActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuGRApproval);
+
+        mnuGRHistory.setText("Histori Penerimaan Barang");
+        mnuGRHistory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuGRHistoryActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuGRHistory);
+
+        mnuHistoriExpiredDate.setText("Histori Expired Date - Good Receipt");
+        mnuHistoriExpiredDate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuHistoriExpiredDatejMenuItem1ActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuHistoriExpiredDate);
+        mnuPembelian.add(jSeparator3);
+
+        mnuTrxBayarSupplier.setText("Pembayaran Hutang ke Supplier");
+        mnuTrxBayarSupplier.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuTrxBayarSupplierjMenuItem1ActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuTrxBayarSupplier);
+
+        mnuAPJatuhTempo.setText("Hutang Jatuh Tempo");
+        mnuAPJatuhTempo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuAPJatuhTempojMenuItem1ActionPerformed(evt);
+            }
+        });
+        mnuPembelian.add(mnuAPJatuhTempo);
+
+        jMenuBar2.add(mnuPembelian);
+
+        mnuPersediaan.setMnemonic('6');
+        mnuPersediaan.setText("6. Persediaan");
+        mnuPersediaan.add(jSeparator7);
+
+        mnuInvSO.setText("Stok Opname");
+        mnuInvSO.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuInvSOActionPerformed1(evt);
+            }
+        });
+        mnuPersediaan.add(mnuInvSO);
+        mnuPersediaan.add(jSeparator9);
+
+        mnuInvTransfer.setText("Transfer Barang");
+        mnuInvTransfer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuInvTransferActionPerformed1(evt);
+            }
+        });
+        mnuPersediaan.add(mnuInvTransfer);
+
+        mnuInvTransferHistory.setText("Histori Transfer Barang");
+        mnuInvTransferHistory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuInvTransferHistoryActionPerformed1(evt);
+            }
+        });
+        mnuPersediaan.add(mnuInvTransferHistory);
+        mnuPersediaan.add(jSeparator10);
+
+        mnuInvReceiptUnplanned.setText("Penerimaan Barang - Lain");
+        mnuInvReceiptUnplanned.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuInvReceiptUnplannedActionPerformed(evt);
+            }
+        });
+        mnuPersediaan.add(mnuInvReceiptUnplanned);
+
+        mnuInvIssueUnplanned.setText("Pengeluaran Barang - Lain");
+        mnuInvIssueUnplanned.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuInvIssueUnplannedActionPerformed(evt);
+            }
+        });
+        mnuPersediaan.add(mnuInvIssueUnplanned);
+
+        jMenuBar2.add(mnuPersediaan);
+
+        mnuKeuPC.setMnemonic('7');
+        mnuKeuPC.setText("7. Petty Cash");
 
         mnuKeuPCKeluar.setText("Kas Keluar");
         mnuKeuPCKeluar.addActionListener(new java.awt.event.ActionListener() {
@@ -1368,40 +1412,6 @@ public class MainForm extends javax.swing.JFrame {
         mnuKeuPC.add(mnuKeuPCList);
 
         jMenuBar2.add(mnuKeuPC);
-
-        mnuTrx.setMnemonic('7');
-        mnuTrx.setText("7. Alat");
-        mnuTrx.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuTrxActionPerformed(evt);
-            }
-        });
-
-        mnuToolsLookupItemJual.setText("Lookup Barang by Harga Jual");
-        mnuToolsLookupItemJual.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuToolsLookupItemJualjMenuItem1ActionPerformed(evt);
-            }
-        });
-        mnuTrx.add(mnuToolsLookupItemJual);
-
-        mnuToolsLookupItemBeli.setText("Lookup Barang by Beli Supplier");
-        mnuToolsLookupItemBeli.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuToolsLookupItemBelijMenuItem1ActionPerformed(evt);
-            }
-        });
-        mnuTrx.add(mnuToolsLookupItemBeli);
-
-        mnuKalkulator.setText("Kalkulator");
-        mnuKalkulator.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuKalkulatorActionPerformed(evt);
-            }
-        });
-        mnuTrx.add(mnuKalkulator);
-
-        jMenuBar2.add(mnuTrx);
 
         mnuRpt.setMnemonic('8');
         mnuRpt.setText("8. Laporan");
@@ -1449,38 +1459,39 @@ public class MainForm extends javax.swing.JFrame {
 
         jMenuBar2.add(mnuRpt);
 
-        jMenu4.setMnemonic('9');
-        jMenu4.setText("9. Klinik");
-
-        jMenuItem3.setText("Reservasi");
-        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+        mnuTool.setMnemonic('9');
+        mnuTool.setText("9. Alat");
+        mnuTool.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem3ActionPerformed(evt);
+                mnuToolActionPerformed(evt);
             }
         });
-        jMenu4.add(jMenuItem3);
 
-        jMenu2.setText("Registrasi");
-
-        jMenuItem1.setText("Pasien Baru");
-        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+        mnuToolsLookupItemJual.setText("Lookup Barang by Harga Jual");
+        mnuToolsLookupItemJual.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem1ActionPerformed(evt);
+                mnuToolsLookupItemJualjMenuItem1ActionPerformed(evt);
             }
         });
-        jMenu2.add(jMenuItem1);
+        mnuTool.add(mnuToolsLookupItemJual);
 
-        jMenuItem2.setText("Lookup Pasien");
-        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+        mnuToolsLookupItemBeli.setText("Lookup Barang by Beli Supplier");
+        mnuToolsLookupItemBeli.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem2ActionPerformed(evt);
+                mnuToolsLookupItemBelijMenuItem1ActionPerformed(evt);
             }
         });
-        jMenu2.add(jMenuItem2);
+        mnuTool.add(mnuToolsLookupItemBeli);
 
-        jMenu4.add(jMenu2);
+        mnuKalkulator.setText("Kalkulator");
+        mnuKalkulator.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuKalkulatorActionPerformed(evt);
+            }
+        });
+        mnuTool.add(mnuKalkulator);
 
-        jMenuBar2.add(jMenu4);
+        jMenuBar2.add(mnuTool);
 
         mnuHelp.setMnemonic('?');
         mnuHelp.setText("Help ?");
@@ -1519,7 +1530,7 @@ public class MainForm extends javax.swing.JFrame {
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
         this.setExtendedState(MAXIMIZED_BOTH);
-        setTitle(sNamaUsaha);
+        
         sKodeGudang = sc.getSite_Id();
 
         try {
@@ -1530,11 +1541,28 @@ public class MainForm extends javax.swing.JFrame {
                 c.setTime(rs.getTimestamp(2));
             }
             rs.close();
+            rs=conn.createStatement().executeQuery("select nama_klinik,\n" +
+                    "  alamat,\n" +
+                    "  telepon,\n" +
+                    "  apoteker,\n" +
+                    "  coalesce(catatan_kwt,'') as catatan_kwt,\n" +
+                    "  sip_apoteker from m_setting");
+            if(rs.next()){
+                sNamaUsaha=rs.getString("nama_klinik");
+                sAlamat=rs.getString("alamat");
+                sTelp=rs.getString("telepon");
+                sApoteker = rs.getString("apoteker");
+                sSipApoteker = rs.getString("sip_apoteker");
+                sCatatanKwt = rs.getString("catatan_kwt");
+            }
+            rs.close();
             setting=settingDao.getSetting();
+            lblUserName.setText(sUserName+" - "+sNamaDokter);
             
         } catch (SQLException se) {
             JOptionPane.showMessageDialog(this, se.getMessage());
         }
+        setTitle("Sistem Informasi Klinik - "+setting.getNamaKlinik());
         timer = new Timer();
         timer.schedule(new DoTick(), 0, 1000);
     }//GEN-LAST:event_formWindowOpened
@@ -1642,10 +1670,6 @@ public class MainForm extends javax.swing.JFrame {
 
 
 }//GEN-LAST:event_mnuRptPembelianjMenuItem1ActionPerformed
-
-    private void jMenuItemAnggotaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAnggotaActionPerformed
-        
-}//GEN-LAST:event_jMenuItemAnggotaActionPerformed
 
 private void mnuMasterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuMasterActionPerformed
 }//GEN-LAST:event_mnuMasterActionPerformed
@@ -1946,9 +1970,9 @@ private void mnuUbahPasswordActionPerformed(java.awt.event.ActionEvent evt) {//G
         }
     }//GEN-LAST:event_mnuFileUserManagementActionPerformed
 
-    private void mnuTrxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuTrxActionPerformed
+    private void mnuToolActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuToolActionPerformed
         
-    }//GEN-LAST:event_mnuTrxActionPerformed
+    }//GEN-LAST:event_mnuToolActionPerformed
 
     private void mnuPRMaintenanceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuPRMaintenanceActionPerformed
         FrmPRMaintenance f1=new FrmPRMaintenance();
@@ -2204,7 +2228,7 @@ private void mnuUbahPasswordActionPerformed(java.awt.event.ActionEvent evt) {//G
             return;
         }
         f1.setConn(conn);
-
+        f1.setMainForm(this);
         f1.setVisible(true);
         f1.setBounds(0, 0, f1.getWidth(), f1.getHeight());
         jDesktopPane1.add(f1, javax.swing.JLayeredPane.DEFAULT_LAYER);
@@ -2298,17 +2322,12 @@ private void mnuUbahPasswordActionPerformed(java.awt.event.ActionEvent evt) {//G
         }
     }//GEN-LAST:event_mnuInvIssueUnplannedActionPerformed
 
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        DlgPasien d1=new DlgPasien(this, true);
-        d1.setVisible(true);
-    }//GEN-LAST:event_jMenuItem1ActionPerformed
-
-    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+    private void mnuKlinikRegistrasiPasienLookupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuKlinikRegistrasiPasienLookupActionPerformed
         DlgLookupPasien d1=new DlgLookupPasien(this, true);
         d1.setVisible(true);
-    }//GEN-LAST:event_jMenuItem2ActionPerformed
+    }//GEN-LAST:event_mnuKlinikRegistrasiPasienLookupActionPerformed
 
-    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+    private void mnuKlinikReservasiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuKlinikReservasiActionPerformed
         FrmReservasi f1 = new FrmReservasi();
         if (udfExistForm(f1)) {
             f1.dispose();
@@ -2324,7 +2343,45 @@ private void mnuUbahPasswordActionPerformed(java.awt.event.ActionEvent evt) {//G
             f1.setSelected(true);
         } catch (PropertyVetoException PO) {
         }
-    }//GEN-LAST:event_jMenuItem3ActionPerformed
+    }//GEN-LAST:event_mnuKlinikReservasiActionPerformed
+
+    private void jMenuItemAnggotaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAnggotaActionPerformed
+
+    }//GEN-LAST:event_jMenuItemAnggotaActionPerformed
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        FrmRegList f1 = new FrmRegList();
+        if (udfExistForm(f1)) {
+            f1.dispose();
+            return;
+        }
+        f1.setConn(this.conn);
+        f1.setTitle("Daftar Registrasi Pasien - "+MainForm.sNamaDokter);
+        f1.setVisible(true);
+        f1.setBounds(0, 0, f1.getWidth(), f1.getHeight());
+        jDesktopPane1.add(f1, javax.swing.JLayeredPane.DEFAULT_LAYER);
+
+        try {
+            f1.setSelected(true);
+        } catch (PropertyVetoException PO) {
+        }
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void mnuFileDiskonPromoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuFileDiskonPromoActionPerformed
+        FrmDiskonEvent f1 = new FrmDiskonEvent();
+        if (udfExistForm(f1)) {
+            f1.dispose();
+            return;
+        }
+        f1.setVisible(true);
+        f1.setBounds(0, 0, f1.getWidth(), f1.getHeight());
+        jDesktopPane1.add(f1, javax.swing.JLayeredPane.DEFAULT_LAYER);
+
+        try {
+            f1.setSelected(true);
+        } catch (PropertyVetoException PO) {
+        }
+    }//GEN-LAST:event_mnuFileDiskonPromoActionPerformed
 
     private void udfLoadReportKasir() {
         FrmRptKasir fRpt = new FrmRptKasir();
@@ -2500,15 +2557,10 @@ private void mnuUbahPasswordActionPerformed(java.awt.event.ActionEvent evt) {//G
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     public static apotek.JDesktopImage jDesktopPane1;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
-    private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar2;
     private javax.swing.JMenuItem jMenuHelpAbout;
-    private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JMenuItem jMenuItem2;
-    private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItemAnggota;
     private javax.swing.JMenuItem jMnItemExit;
     private javax.swing.JMenuItem jMnuGudang;
@@ -2547,6 +2599,7 @@ private void mnuUbahPasswordActionPerformed(java.awt.event.ActionEvent evt) {//G
     private javax.swing.JMenuItem mnuAR;
     private javax.swing.JMenuItem mnuAR1;
     private javax.swing.JMenu mnuFile;
+    private javax.swing.JMenuItem mnuFileDiskonPromo;
     private javax.swing.JMenuItem mnuFileMenuAuth;
     private javax.swing.JMenuItem mnuFileMenuGrouping;
     private javax.swing.JMenuItem mnuFileUserManagement;
@@ -2566,6 +2619,9 @@ private void mnuUbahPasswordActionPerformed(java.awt.event.ActionEvent evt) {//G
     private javax.swing.JMenuItem mnuKeuPCKeluar;
     private javax.swing.JMenuItem mnuKeuPCList;
     private javax.swing.JMenuItem mnuKeuPCMasuk;
+    private javax.swing.JMenu mnuKlinik;
+    private javax.swing.JMenuItem mnuKlinikRegistrasiPasienLookup;
+    private javax.swing.JMenuItem mnuKlinikReservasi;
     private javax.swing.JMenuItem mnuListCustomer;
     private javax.swing.JMenuItem mnuListPenjualan;
     private javax.swing.JMenuItem mnuListPenjualanRetur;
@@ -2590,17 +2646,18 @@ private void mnuUbahPasswordActionPerformed(java.awt.event.ActionEvent evt) {//G
     private javax.swing.JMenuItem mnuPRApproval;
     private javax.swing.JMenuItem mnuPRHistory;
     private javax.swing.JMenuItem mnuPRMaintenance;
+    private javax.swing.JMenu mnuPembelian;
     private javax.swing.JMenu mnuPenjualan;
+    private javax.swing.JMenu mnuPersediaan;
     private javax.swing.JMenu mnuRpt;
     private javax.swing.JMenuItem mnuRptKasir;
     private javax.swing.JMenuItem mnuRptKeuangan;
     private javax.swing.JMenuItem mnuRptPembelian;
     private javax.swing.JMenuItem mnuRptPenjualan;
     private javax.swing.JMenuItem mnuRptPersediaan;
-    private javax.swing.JMenu mnuSetting;
+    private javax.swing.JMenu mnuTool;
     private javax.swing.JMenuItem mnuToolsLookupItemBeli;
     private javax.swing.JMenuItem mnuToolsLookupItemJual;
-    private javax.swing.JMenu mnuTrx;
     private javax.swing.JMenuItem mnuTrxBayarSupplier;
     private javax.swing.JMenuItem mnuTrxPenjualan;
     private javax.swing.JMenuItem mnuUbahPassword;
@@ -2609,10 +2666,12 @@ private void mnuUbahPasswordActionPerformed(java.awt.event.ActionEvent evt) {//G
     private org.jdesktop.swingx.JXTaskPane taskpane_inventori;
     private org.jdesktop.swingx.JXTaskPane taskpane_report;
     // End of variables declaration//GEN-END:variables
-    public static String sNamaUsaha = "KLINIK PALEM PERTIWI";
-    public static String sAlamat = "Ruko Palem Pertiwi - Menganti";
-    public static String sTelp = "Telp. ";
-    public static String sKota="Gresik";
+    public static String sNamaUsaha = "";
+    public static String sAlamat = "";
+    public static String sApoteker = "";
+    public static String sSipApoteker = "";
+    public static String sTelp = "";
+    public static String sKota="";
     
 
     private void udfLoadUserManagement() {

@@ -12,6 +12,7 @@ import com.klinik.model.Pasien;
 import com.klinik.model.Reservasi;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Frame;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -28,7 +29,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import main.GeneralFunction;
-import org.jdesktop.swingx.decorator.HighlighterFactory;
+import static main.MainForm.conn;
+import static main.MainForm.jDesktopPane1;
 
 /**
  *
@@ -44,6 +46,7 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
     public FrmReservasi() {
         try {
             initComponents();
+            jXTable1.setRowHeight(22);
             cmbDokter.removeAllItems();
             ResultSet rs=Main.conn.createStatement().executeQuery("select kode_dokter, nama ||coalesce(', '||gelar_depan,'')||coalesce(', '||gelar_belakang,'') as nama "
                     + "from rm_dokter order by nama");
@@ -62,12 +65,23 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
 
                 @Override
                 public void valueChanged(ListSelectionEvent e) {
+                    btnTransaksi.setEnabled(false);
                     int iRow=jXTable1.getSelectedRow();
                     String status="";
-                    if(iRow>=0)
-                        status=jXTable1.getValueAt(iRow, jXTable1.getColumnModel().getColumnIndex("Status")).toString();
+                    if(iRow>=0){
+                        Integer id=fn.udfGetInt(jXTable1.getValueAt(iRow, jXTable1.getColumnModel().getColumnIndex("ID")).toString());
+                        Reservasi rv=dao.findOne(id);
+                        
+                        status=rv.getStatus();
+                        jXTable1.setValueAt(status, iRow, jXTable1.getColumnModel().getColumnIndex("Status"));
+                        String noReg=jXTable1.getValueAt(iRow, jXTable1.getColumnModel().getColumnIndex("No. Reg"))==null?"": jXTable1.getValueAt(iRow, jXTable1.getColumnModel().getColumnIndex("No. Reg")).toString();
+                        btnTransaksi.setEnabled(noReg.length()>0);
+                    }
                     
-                    btnBatal.setEnabled(iRow>=0 && status.equalsIgnoreCase("Menunggu"));
+                    
+                    btnBatal.setEnabled(iRow>=0 && status.equalsIgnoreCase("Reservasi"));
+                    btnRegistrasi.setEnabled(iRow>=0 && status.equalsIgnoreCase("Reservasi"));
+                    
                 }
             });
             
@@ -94,8 +108,8 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
         btnLama = new javax.swing.JButton();
         btnBaru = new javax.swing.JButton();
         btnBatal = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jXTable1 = new org.jdesktop.swingx.JXTable();
+        btnRegistrasi = new javax.swing.JButton();
+        btnTransaksi = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
@@ -110,11 +124,15 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         lblLegendCancel = new javax.swing.JLabel();
+        btnBatal1 = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jXTable1 = new javax.swing.JTable();
 
         setClosable(true);
         setIconifiable(true);
         setMaximizable(true);
         setTitle("Reservasi Pasien");
+        setEnabled(false);
         addInternalFrameListener(new javax.swing.event.InternalFrameListener() {
             public void internalFrameActivated(javax.swing.event.InternalFrameEvent evt) {
             }
@@ -136,7 +154,6 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        btnLama.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/small/refresh.png"))); // NOI18N
         btnLama.setText("Pasien Lama");
         btnLama.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnLama.addActionListener(new java.awt.event.ActionListener() {
@@ -146,7 +163,6 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
         });
         jPanel1.add(btnLama, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 10, 135, 25));
 
-        btnBaru.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/small/add.png"))); // NOI18N
         btnBaru.setText("Pasien Baru");
         btnBaru.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnBaru.addActionListener(new java.awt.event.ActionListener() {
@@ -156,35 +172,34 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
         });
         jPanel1.add(btnBaru, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 135, 25));
 
-        btnBatal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/small/cancel.png"))); // NOI18N
-        btnBatal.setText("Batal");
+        btnBatal.setText("Batalkan");
         btnBatal.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnBatal.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBatalActionPerformed(evt);
             }
         });
-        jPanel1.add(btnBatal, new org.netbeans.lib.awtextra.AbsoluteConstraints(295, 10, 105, 25));
+        jPanel1.add(btnBatal, new org.netbeans.lib.awtextra.AbsoluteConstraints(765, 10, 105, 25));
 
-        jXTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "No", "Pasien", "Jenis Kelamin", "Tgl Lahir", "Alamat", "Status", "ID"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false
-            };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
+        btnRegistrasi.setText("Registrasi");
+        btnRegistrasi.setEnabled(false);
+        btnRegistrasi.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        btnRegistrasi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegistrasiActionPerformed(evt);
             }
         });
-        jXTable1.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
-        jXTable1.getTableHeader().setReorderingAllowed(false);
-        jScrollPane1.setViewportView(jXTable1);
+        jPanel1.add(btnRegistrasi, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 10, 110, 25));
+
+        btnTransaksi.setText("Transaksi");
+        btnTransaksi.setEnabled(false);
+        btnTransaksi.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        btnTransaksi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnTransaksiActionPerformed(evt);
+            }
+        });
+        jPanel1.add(btnTransaksi, new org.netbeans.lib.awtextra.AbsoluteConstraints(405, 10, 145, 25));
 
         jPanel4.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel4.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -198,7 +213,6 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
         cmbDokter.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         jPanel4.add(cmbDokter, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 45, 440, -1));
 
-        btnRefresh.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/small/refresh.png"))); // NOI18N
         btnRefresh.setText("Refresh");
         btnRefresh.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnRefresh.addActionListener(new java.awt.event.ActionListener() {
@@ -207,6 +221,12 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
             }
         });
         jPanel4.add(btnRefresh, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 15, 100, 25));
+
+        jXDatePicker2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jXDatePicker2ActionPerformed(evt);
+            }
+        });
         jPanel4.add(jXDatePicker2, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 15, 185, -1));
 
         jLabel3.setText(" Teregistrasi");
@@ -241,6 +261,34 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
         lblLegendCancel.setOpaque(true);
         jPanel4.add(lblLegendCancel, new org.netbeans.lib.awtextra.AbsoluteConstraints(565, 65, 20, 20));
 
+        btnBatal1.setText("Refresh");
+        btnBatal1.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        btnBatal1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBatal1ActionPerformed(evt);
+            }
+        });
+        jPanel4.add(btnBatal1, new org.netbeans.lib.awtextra.AbsoluteConstraints(695, 55, 105, 25));
+
+        jXTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "No", "No. Reg", "Norm", "Pasien", "Jenis Kelamin", "Tgl Lahir", "Alamat", "Status", "ID"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jXTable1.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        jScrollPane2.setViewportView(jXTable1);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -248,8 +296,10 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(10, 10, 10)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, 695, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, 896, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane2)
+                        .addGap(1, 1, 1))
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(14, 14, 14))
         );
@@ -259,13 +309,13 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
                 .addGap(10, 10, 10)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 230, Short.MAX_VALUE)
-                .addGap(5, 5, 5)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 235, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(6, 6, 6))
         );
 
-        setBounds(0, 0, 729, 418);
+        setBounds(0, 0, 930, 418);
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnLamaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLamaActionPerformed
@@ -327,12 +377,41 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
         batal();
     }//GEN-LAST:event_btnBatalActionPerformed
 
+    private void btnRegistrasiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrasiActionPerformed
+        udfRegistrasi();
+    }//GEN-LAST:event_btnRegistrasiActionPerformed
+
+    private void btnBatal1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBatal1ActionPerformed
+        udfFilter(0);
+    }//GEN-LAST:event_btnBatal1ActionPerformed
+
+    private void jXDatePicker2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jXDatePicker2ActionPerformed
+        udfFilter(0);
+    }//GEN-LAST:event_jXDatePicker2ActionPerformed
+
+    private void btnTransaksiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTransaksiActionPerformed
+        int iRow=jXTable1.getSelectedRow();
+        if(iRow>=0){
+            String noReg=jXTable1.getValueAt(iRow, jXTable1.getColumnModel().getColumnIndex("No. Reg"))==null?"": jXTable1.getValueAt(iRow, jXTable1.getColumnModel().getColumnIndex("No. Reg")).toString();
+            penjualan.FrmPenjualan trx = new penjualan.FrmPenjualan();
+            trx.setTitle("Penjualan");
+            trx.setNoReg(noReg);
+            trx.setDesktopPane(jDesktopPane1);
+            trx.setConn(conn);
+            trx.setState(Frame.MAXIMIZED_BOTH);
+            trx.setVisible(true);
+        }
+    }//GEN-LAST:event_btnTransaksiActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBaru;
     private javax.swing.JButton btnBatal;
+    private javax.swing.JButton btnBatal1;
     private javax.swing.JButton btnLama;
     private javax.swing.JButton btnRefresh;
+    private javax.swing.JButton btnRegistrasi;
+    private javax.swing.JButton btnTransaksi;
     private javax.swing.JComboBox cmbDokter;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -342,9 +421,9 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel4;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private org.jdesktop.swingx.JXDatePicker jXDatePicker2;
-    private org.jdesktop.swingx.JXTable jXTable1;
+    private javax.swing.JTable jXTable1;
     private javax.swing.JLabel lblLegendCancel;
     private javax.swing.JLabel lblLegendCompleted;
     private javax.swing.JLabel lblLegendRegistered;
@@ -352,28 +431,34 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
     // End of variables declaration//GEN-END:variables
 
     public void udfFilter(Integer id) {
-        String SQL="SELECT id, tanggal, norm, nama, "
-                + "case when jenis_kelamin='L' then 'Laki-laki' else 'Perempuan' end as jenis_kelamin, tempat_lahir, \n" +
-                "       tgl_lahir, alamat_domisili, telepon, hp, nama_keluarga, telp_keluarga, \n" +
-                "       user_ins, time_ins, batal, \n" +
-                "       case status when '1' then 'Reservasi' "
-                + "                 when '2' then 'Registrasi' "
-                + "                 when '3' then 'Selesai' "
-                + "                 when '4' then 'Batal' "
-                + "else '' end as status\n" +
-                "  FROM rm_reservasi rv\n" +
-                "  where rv.tanggal='"+new SimpleDateFormat("yyyy-MM-dd").format(jXDatePicker2.getDate())+"'::date "
-                + "and rv.kode_dokter='"+listDokter.get(cmbDokter.getSelectedIndex()).getKode()+"' \n" +
-                " order by id  ";
+        String SQL= "SELECT id, rv.tanggal, coalesce(ps.norm, rv.norm) as norm, coalesce(ps.nama||coalesce(', '||ps.title,''), rv.nama) as pasien, \n" +
+                    "case coalesce(ps.jenis_kelamin, rv.jenis_kelamin) when 'L' then 'Laki-laki' else 'Perempuan' end as jenis_kelamin, \n" +
+                    "coalesce(ps.tempat_lahir, rv.tempat_lahir) as tempat_lahir, \n" +
+                    "coalesce(ps.tgl_lahir, rv.tgl_lahir) as tgl_lahir, \n" +
+                    "coalesce(ps.alamat_domisili, rv.alamat_domisili) as alamat_domisili, \n" +
+                    "coalesce(ps.telepon, rv.telepon) as telepon, coalesce(ps.hp, rv.hp) as hp, \n" +
+                    "coalesce(ps.nama_keluarga, rv.nama_keluarga) as nama_keluarga, \n" +
+                    "coalesce(ps.telp_keluarga, rv.telp_keluarga) as telp_keluarga, \n" +
+                    "rv.user_ins, rv.time_ins, rv.batal, \n" +
+                    "case rv.status when '1' then 'Reservasi'                  when '2' then 'Registrasi'                  when '3' then 'Selesai'                  when '4' then 'Batal' else '' end as status, \n" +
+                    "coalesce(reg.no_reg,'') as no_reg \n" +
+                    "FROM rm_reservasi rv\n" +
+                    "left join rm_reg reg on reg.id_reservasi=rv.id \n" +
+                    "left join rm_pasien ps on reg.no_reg=ps.norm \n" +
+                    "where rv.tanggal='"+new SimpleDateFormat("yyyy-MM-dd").format(jXDatePicker2.getDate())+"'::date "+
+                    "and rv.kode_dokter='"+listDokter.get(cmbDokter.getSelectedIndex()).getKode()+"' \n" +
+                    "order by rv.id  ";
         System.out.println(SQL);
         ((DefaultTableModel)jXTable1.getModel()).setNumRows(0);
-        int i=1, selectedRow=0;
+        int i=1, selectedRow=-1;
         try {
             ResultSet rs=Main.conn.createStatement().executeQuery(SQL);
             while(rs.next()){
                 ((DefaultTableModel)jXTable1.getModel()).addRow(new Object[]{
                     i,
-                    rs.getString("nama"),
+                    rs.getString("no_reg"),
+                    rs.getString("norm"),
+                    rs.getString("pasien"),
                     rs.getString("jenis_kelamin"),
                     rs.getDate("tgl_lahir"),
                     rs.getString("alamat_domisili"),
@@ -386,8 +471,10 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
                 i++;
             }
             if(i>1){
-                jXTable1.setRowSelectionInterval(selectedRow, selectedRow);
                 fn.autoColWidthTable(jXTable1);
+            }
+            if(selectedRow >=0){
+                jXTable1.setRowSelectionInterval(selectedRow, selectedRow);
             }
             rs.close();
         } catch (SQLException ex) {
@@ -411,30 +498,28 @@ public class FrmReservasi extends javax.swing.JInternalFrame {
     
     Color w1 = new Color(255,255,255);
     Color w2 = new Color(240,240,240);
+
+    private void udfRegistrasi() {
+        int iRow=jXTable1.getSelectedRow();
+        Integer id=GeneralFunction.udfGetInt(jXTable1.getValueAt(iRow, jXTable1.getColumnModel().getColumnIndex("ID")));
+        DlgPasienReg px=new DlgPasienReg(JOptionPane.getFrameForComponent(this), true);
+        px.setReservasi(dao.findOne(id));
+        px.setSrcForm(this);
+        px.setTitle("Registrasi dokter '"+cmbDokter.getSelectedItem().toString()+"'");
+        px.setLocationRelativeTo(null);
+        px.setVisible(true);
+    }
     class MyRowRenderer extends DefaultTableCellRenderer implements TableCellRenderer{
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             setFont(table.getFont());
-            
-            Color w;
-
-            if(column%2==0){
-                w = w1;
-            }else{
-                w = w2;
-            }
-
-//            if(row%2==0)
-//                setBackground(Color.WHITE);
-//            else
-//                setBackground(Color.LIGHT_GRAY);
-
-            if(table.getValueAt(row, table.getColumnModel().getColumnIndex("Status")).toString().equalsIgnoreCase("Batal"))
+            Object status=table.getValueAt(row, table.getColumnModel().getColumnIndex("Status"));
+            if(status!=null && status.toString().equalsIgnoreCase("Batal"))
                 setBackground(lblLegendCancel.getBackground());
-            else if(table.getValueAt(row, table.getColumnModel().getColumnIndex("Status")).toString().equalsIgnoreCase("Reservasi"))
+            else if(status!=null && status.toString().equalsIgnoreCase("Reservasi"))
                 setBackground(lblLegendReserved.getBackground());
-            else if(table.getValueAt(row, table.getColumnModel().getColumnIndex("Status")).toString().equalsIgnoreCase("Registrasi"))
+            else if(status!=null && status.toString().equalsIgnoreCase("Registrasi"))
                 setBackground(lblLegendRegistered.getBackground());
-            else if(table.getValueAt(row, table.getColumnModel().getColumnIndex("Status")).toString().equalsIgnoreCase("Selesai"))
+            else if(status!=null && status.toString().equalsIgnoreCase("Selesai"))
                 setBackground(lblLegendCompleted.getBackground());
             else
                 setBackground(table.getBackground());

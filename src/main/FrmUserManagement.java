@@ -10,6 +10,8 @@
  */
 package main;
 
+import apotek.Main;
+import com.klinik.model.BaseModel;
 import java.awt.Cursor;
 import java.awt.Image;
 import java.awt.event.KeyEvent;
@@ -19,8 +21,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -39,6 +44,7 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
 
     private Connection conn;
     GeneralFunction fn;
+    private List<BaseModel> listDokter=new ArrayList<BaseModel>();
 
     /**
      * Creates new form FrmUserManagement
@@ -59,9 +65,11 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
 
                 try {
                     String s = "select u.user_id, u.username, "
-                            + "photo, ttd_electronic, coalesce(profile, -1) as profile "
+                            + "coalesce(nama ||coalesce(', '||gelar_depan,'')||coalesce(', '||gelar_belakang,''),'') as nama_dokter, "
+                            + "u.photo, u.ttd_electronic, coalesce(u.profile, -1) as profile "
                             + "from m_user u "
-                            + "where username ='" + tblUser.getValueAt(tblUser.getSelectedRow(), col.getColumnIndex("Username")).toString() + "' ";
+                            + "left join rm_dokter dok on dok.kode_dokter=u.kode_dokter "
+                            + "where u.username ='" + tblUser.getValueAt(tblUser.getSelectedRow(), col.getColumnIndex("Username")).toString() + "' ";
 
                     ResultSet rs = conn.createStatement().executeQuery(s);
                     if (rs.next()) {
@@ -69,6 +77,11 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
                         txtUserID.setText(rs.getString("user_id"));
                         txtUsername.setText(rs.getString("username"));
                         cmbUserProfile.setSelectedIndex(rs.getInt("profile"));
+                        if(!rs.getString("nama_dokter").equalsIgnoreCase("")){
+                            cmbDokter.setSelectedItem(rs.getString("nama_dokter"));
+                        }else{
+                            cmbDokter.setSelectedIndex(-1);
+                        }
                         byte[] imgBytes = rs.getBytes("photo");
                         byte[] imgSign = rs.getBytes("ttd_electronic");
 
@@ -181,6 +194,8 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
         txtPassword = new javax.swing.JPasswordField();
         lblSign = new javax.swing.JLabel();
         cmbUserProfile = new javax.swing.JComboBox();
+        lblDokter = new javax.swing.JLabel();
+        cmbDokter = new javax.swing.JComboBox();
         btnDelete = new javax.swing.JButton();
         btnClose = new javax.swing.JButton();
         btnUpdate = new javax.swing.JButton();
@@ -246,12 +261,16 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setText("Username :");
-        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 55, 115, 20));
+        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 50, 125, 20));
 
         jLabel2.setText("User ID :");
-        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 30, 70, 20));
-        jPanel1.add(txtUsername, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 55, 180, -1));
-        jPanel1.add(txtUserID, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 30, 80, -1));
+        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 20, 80, 20));
+
+        txtUsername.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel1.add(txtUsername, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 50, 180, 25));
+
+        txtUserID.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel1.add(txtUserID, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 20, 80, 25));
 
         lblPhoto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lblPhoto.setText("Employee Photo"); // NOI18N
@@ -261,18 +280,22 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
                 lblPhotoMouseClicked(evt);
             }
         });
-        jPanel1.add(lblPhoto, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 180, 130, 180));
+        jPanel1.add(lblPhoto, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 205, 130, 155));
 
-        jLabel7.setText("Password (again) :");
-        jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 155, 130, 20));
+        jLabel7.setText("Password (lagi) :");
+        jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 165, 140, 20));
 
         jLabel10.setText("User Profile :");
-        jPanel1.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 105, 90, 20));
+        jPanel1.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 80, 100, 20));
 
         jLabel11.setText("Password :");
-        jPanel1.add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 130, 90, 20));
-        jPanel1.add(txtPasswordAgain, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 155, 130, -1));
-        jPanel1.add(txtPassword, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 130, 130, -1));
+        jPanel1.add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 140, 100, 20));
+
+        txtPasswordAgain.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel1.add(txtPasswordAgain, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 165, 130, 25));
+
+        txtPassword.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel1.add(txtPassword, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 140, 130, 25));
 
         lblSign.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lblSign.setText("Employee Sign"); // NOI18N
@@ -284,20 +307,32 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
         });
         jPanel1.add(lblSign, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 280, 190, 80));
 
-        cmbUserProfile.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Administrator", "Supervisor", "User" }));
-        jPanel1.add(cmbUserProfile, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 105, 140, -1));
+        cmbUserProfile.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Admin", "Dokter", "Gudang" }));
+        cmbUserProfile.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cmbUserProfileItemStateChanged(evt);
+            }
+        });
+        jPanel1.add(cmbUserProfile, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 80, 170, -1));
+
+        lblDokter.setText("Dokter : ");
+        jPanel1.add(lblDokter, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 110, 100, 20));
+
+        jPanel1.add(cmbDokter, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 110, 220, -1));
 
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 10, 370, 370));
 
-        btnDelete.setText("Delete");
+        btnDelete.setText("Hapus");
+        btnDelete.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnDelete.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDeleteActionPerformed(evt);
             }
         });
-        getContentPane().add(btnDelete, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 390, 70, -1));
+        getContentPane().add(btnDelete, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 390, 70, -1));
 
-        btnClose.setText("Close");
+        btnClose.setText("Tutup");
+        btnClose.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnClose.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCloseActionPerformed(evt);
@@ -306,6 +341,7 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
         getContentPane().add(btnClose, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 390, 80, -1));
 
         btnUpdate.setText("Update");
+        btnUpdate.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnUpdate.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnUpdateActionPerformed(evt);
@@ -313,7 +349,7 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
         });
         getContentPane().add(btnUpdate, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 390, 80, -1));
 
-        jLabel3.setText("Search :");
+        jLabel3.setText("Cari : ");
         getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 390, 60, 20));
 
         txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -323,13 +359,14 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
         });
         getContentPane().add(txtSearch, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 390, 160, -1));
 
-        btnDelete1.setText("New");
+        btnDelete1.setText("Tambah");
+        btnDelete1.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnDelete1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDelete1ActionPerformed(evt);
             }
         });
-        getContentPane().add(btnDelete1, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 390, 60, -1));
+        getContentPane().add(btnDelete1, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 390, 70, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -341,7 +378,23 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
 }//GEN-LAST:event_lblPhotoMouseClicked
 
     private void formInternalFrameOpened(javax.swing.event.InternalFrameEvent evt) {//GEN-FIRST:event_formInternalFrameOpened
-        udfFilter("");
+        try {
+            cmbDokter.removeAllItems();
+            ResultSet rs=Main.conn.createStatement().executeQuery(
+                    "select kode_dokter, coalesce(nama ||coalesce(', '||gelar_depan,'')||coalesce(', '||gelar_belakang,''),'') as nama "
+                    + "from rm_dokter order by nama");
+            while(rs.next()){
+                BaseModel b=new BaseModel();
+                b.setKode(rs.getString("kode_dokter"));
+                b.setNama(rs.getString("nama"));
+                listDokter.add(b);
+                cmbDokter.addItem(rs.getString("nama"));
+            }
+            rs.close();
+            udfFilter("");
+        }catch(SQLException se){
+            JOptionPane.showMessageDialog(this, se.getMessage());
+        }
     }//GEN-LAST:event_formInternalFrameOpened
 
     private void btnCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCloseActionPerformed
@@ -377,6 +430,13 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
         udfNew();
         txtUserID.requestFocus();
     }//GEN-LAST:event_btnDelete1ActionPerformed
+
+    private void cmbUserProfileItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbUserProfileItemStateChanged
+        if(cmbUserProfile.getSelectedIndex()>=0){
+            lblDokter.setVisible(cmbUserProfile.getSelectedItem().toString().equalsIgnoreCase("Dokter"));
+            cmbDokter.setVisible(cmbUserProfile.getSelectedItem().toString().equalsIgnoreCase("Dokter"));
+        }
+    }//GEN-LAST:event_cmbUserProfileItemStateChanged
 
     private void PilihFoto(String sFrom) {
         this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
@@ -449,6 +509,7 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
     private javax.swing.JButton btnDelete;
     private javax.swing.JButton btnDelete1;
     private javax.swing.JButton btnUpdate;
+    private javax.swing.JComboBox cmbDokter;
     private javax.swing.JComboBox cmbUserProfile;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -459,6 +520,7 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private org.jdesktop.swingx.JXTitledPanel jXTitledPanel1;
+    private javax.swing.JLabel lblDokter;
     private javax.swing.JLabel lblPhoto;
     private javax.swing.JLabel lblSign;
     private javax.swing.JTable tblUser;
@@ -483,16 +545,49 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
         return s;
     }
 
-    private void udfSave() {
+    private String getStrPassword(char [] pass){
+        String sPass="";
+        for (int i = 0; i < pass.length; i++) {
+            sPass+=pass[i];
+        }
+        return sPass;
+    }
+    
+    private boolean checkBeforeSave(){
         btnUpdate.requestFocusInWindow();
         if(txtUsername.getText().trim().equalsIgnoreCase("")){
             JOptionPane.showMessageDialog(this, "Silahkan isi username terlebih dulu!");
             txtUsername.requestFocusInWindow();
-            return ;
+            return false;
         }
-        if(!txtPassword.getPassword().equals(txtPasswordAgain.getPassword())){
+        if(! getStrPassword(txtPassword.getPassword()).equals(getStrPassword(txtPasswordAgain.getPassword()))){
             JOptionPane.showMessageDialog(this, "Password harus sama dengan konfirmasi password!");
             txtPassword.requestFocusInWindow();
+            return false;
+        }
+        if(txtUserID.getText().equalsIgnoreCase("")){
+            try {
+                PreparedStatement ps=null;
+                ps=MainForm.conn.prepareStatement("select * from m_user where username=? and user_id!=?");
+                ps.setString(1, txtUsername.getText());
+                ps.setString(2, txtUserID.getText());
+                ps.executeQuery();
+                if(ps.getResultSet().next()){
+                    JOptionPane.showMessageDialog(this, "Username '"+txtUsername.getText()+"' sudah ada di database!");
+                    ps.close();
+                    return false;
+                }
+                ps.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(FrmUserManagement.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+        return true;
+    }
+    
+    private void udfSave() {
+        if(!checkBeforeSave()){
             return;
         }
         boolean isNew = false;
@@ -507,6 +602,8 @@ public class FrmUserManagement extends javax.swing.JInternalFrame {
             }
             rs.updateString("user_id", txtUserID.getText());
             rs.updateString("username", txtUsername.getText());
+            rs.updateInt("profile", cmbUserProfile.getSelectedIndex());
+            rs.updateString("kode_dokter", cmbUserProfile.getSelectedItem().toString().equalsIgnoreCase("Dokter")? listDokter.get(cmbDokter.getSelectedIndex()).getKode(): "");
             if (sFotoFile.length() > 0) {
                 File file;
                 file = new File(sFotoFile);

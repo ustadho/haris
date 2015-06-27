@@ -7,15 +7,34 @@
 package com.klinik.rm;
 
 import com.klinik.dao.PasienDao;
+import com.klinik.dao.RegistrasiDao;
 import com.klinik.dao.ReservasiDao;
 import com.klinik.model.Pasien;
+import com.klinik.model.Registrasi;
 import com.klinik.model.Reservasi;
+import com.klinik.model.StatusUpdate;
+import com.klinik.model.Usia;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.FocusTraversalPolicy;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFormattedTextField;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.text.MaskFormatter;
+import main.GeneralFunction;
 
 /**
  *
@@ -25,6 +44,12 @@ public class DlgPasien extends javax.swing.JDialog {
     private Object srcForm;
     private Date tglReservasi;
     private Pasien selectedPasien=null;
+    private Reservasi reservasi;
+    private PasienDao pasienDao=new PasienDao();
+    private RegistrasiDao regDao=new RegistrasiDao();
+    private GeneralFunction fn=new GeneralFunction();
+    private Component aThis;
+    private boolean selected;
     
     /**
      * Creates new form NewJDialog
@@ -32,6 +57,19 @@ public class DlgPasien extends javax.swing.JDialog {
     public DlgPasien(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        MaskFormatter fmttgl = null;
+        try {
+            fmttgl = new MaskFormatter("##-##-####");
+        } catch (java.text.ParseException e) {}
+
+        JFormattedTextField jFDate1 = new JFormattedTextField(fmttgl);
+        txtTglLahir.setFormatterFactory(jFDate1.getFormatterFactory());
+        
+        MyKeyListener kListener=new MyKeyListener();
+        fn.addKeyListenerInContainer(jPanel1, kListener, txtFocusListener);
+        btnSimpan.addKeyListener(kListener);
+        btnBatal.addKeyListener(kListener);
+        setLocationRelativeTo(null);
     }
 
     public Pasien getSelectedPasien(){
@@ -73,11 +111,18 @@ public class DlgPasien extends javax.swing.JDialog {
         txtNamaKeluarga = new javax.swing.JTextField();
         jLabel13 = new javax.swing.JLabel();
         txtTelpKeluarga = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        btnLookup = new javax.swing.JButton();
+        cmbTItle = new javax.swing.JComboBox();
+        jLabel15 = new javax.swing.JLabel();
         btnSimpan = new javax.swing.JButton();
         btnBatal = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel14.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
@@ -93,13 +138,13 @@ public class DlgPasien extends javax.swing.JDialog {
         txtNorm.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         txtNorm.setDisabledTextColor(new java.awt.Color(0, 0, 0));
         txtNorm.setEnabled(false);
-        jPanel1.add(txtNorm, new org.netbeans.lib.awtextra.AbsoluteConstraints(115, 10, 70, 22));
+        jPanel1.add(txtNorm, new org.netbeans.lib.awtextra.AbsoluteConstraints(115, 10, 90, 22));
 
         txtNama.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(txtNama, new org.netbeans.lib.awtextra.AbsoluteConstraints(115, 35, 325, 22));
 
-        jLabel2.setText("Nama");
-        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 35, 75, 20));
+        jLabel2.setText("Title");
+        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 75, 20));
 
         jLabel3.setText("Alamat");
         jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 135, 95, 20));
@@ -121,10 +166,10 @@ public class DlgPasien extends javax.swing.JDialog {
         jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 115, 110, 20));
 
         jLabel6.setText("Tmp. Lahir : ");
-        jPanel1.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 105, 20));
+        jPanel1.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 60, 95, 20));
 
         txtTempatLahir.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanel1.add(txtTempatLahir, new org.netbeans.lib.awtextra.AbsoluteConstraints(115, 60, 160, 22));
+        jPanel1.add(txtTempatLahir, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 60, 160, 22));
 
         jLabel7.setText("HP");
         jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(225, 160, 70, 20));
@@ -167,18 +212,23 @@ public class DlgPasien extends javax.swing.JDialog {
         txtTelpKeluarga.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(txtTelpKeluarga, new org.netbeans.lib.awtextra.AbsoluteConstraints(115, 210, 325, 22));
 
-        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/small/find.png"))); // NOI18N
-        jButton1.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btnLookup.setText("...");
+        btnLookup.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnLookup.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnLookupActionPerformed(evt);
             }
         });
-        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 10, 30, -1));
+        jPanel1.add(btnLookup, new org.netbeans.lib.awtextra.AbsoluteConstraints(205, 10, 25, 25));
 
-        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 35, 470, 245));
+        cmbTItle.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Tn", "Ny", "Nn", "Sdr", "An", "By" }));
+        jPanel1.add(cmbTItle, new org.netbeans.lib.awtextra.AbsoluteConstraints(115, 60, 65, -1));
 
-        btnSimpan.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/Icon/32/cd.png"))); // NOI18N
+        jLabel15.setText("Nama");
+        jPanel1.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 35, 75, 20));
+
+        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 35, 470, 240));
+
         btnSimpan.setText("Simpan");
         btnSimpan.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnSimpan.addActionListener(new java.awt.event.ActionListener() {
@@ -186,9 +236,8 @@ public class DlgPasien extends javax.swing.JDialog {
                 btnSimpanActionPerformed(evt);
             }
         });
-        getContentPane().add(btnSimpan, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 285, 120, -1));
+        getContentPane().add(btnSimpan, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 280, 120, 35));
 
-        btnBatal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/Icon/32/close.png"))); // NOI18N
         btnBatal.setText("Batal");
         btnBatal.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnBatal.addActionListener(new java.awt.event.ActionListener() {
@@ -196,28 +245,19 @@ public class DlgPasien extends javax.swing.JDialog {
                 btnBatalActionPerformed(evt);
             }
         });
-        getContentPane().add(btnBatal, new org.netbeans.lib.awtextra.AbsoluteConstraints(373, 285, 105, -1));
+        getContentPane().add(btnBatal, new org.netbeans.lib.awtextra.AbsoluteConstraints(375, 280, 105, 35));
 
-        setBounds(0, 0, 502, 371);
+        setBounds(0, 0, 502, 361);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void btnLookupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLookupActionPerformed
         DlgLookupPasien d1=new DlgLookupPasien(JOptionPane.getFrameForComponent(this), true);
         d1.setVisible(true);
         Pasien px=d1.getSelectedPasien();
         if(px !=null){
-            txtNorm.setText(px.getNorm());
-            txtNama.setText(px.getNama());
-            txtAlamat.setText(px.getAlamatDomisili());
-            cmbSex.setSelectedIndex(px.getJenisKelamin().equalsIgnoreCase("L")? 0: 1);
-            txtTempatLahir.setText(px.getTempatLahir());
-            txtTglLahir.setText(new SimpleDateFormat("dd-MM-yyyy").format(px.getTanggalLahir()));
-            txtTelepon.setText(px.getTelepon());
-            txtHp.setText(px.getHp());
-            txtNamaKeluarga.setText(px.getNamaKeluarga());
-            txtTelpKeluarga.setText(px.getTeleponKeluarga());
+            isiDataPasien(px);
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_btnLookupActionPerformed
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         udfSave();
@@ -228,6 +268,46 @@ public class DlgPasien extends javax.swing.JDialog {
         this.dispose();
     }//GEN-LAST:event_btnBatalActionPerformed
 
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        if(this.reservasi!=null){
+            if(this.reservasi.getPasien()!=null){
+                this.selectedPasien=this.reservasi.getPasien();
+                isiDataPasien(this.selectedPasien);
+                btnLookup.setVisible(false);
+            }
+        }else{
+            if(this.txtNorm.getText().length()>0){
+                txtNorm.setEditable(false);
+                Pasien px=pasienDao.getPasien(txtNorm.getText());
+                if(px!=null){
+                    isiDataPasien(px);
+                }
+            }
+        }
+        
+        aThis=this;
+    }//GEN-LAST:event_formWindowOpened
+
+    DateFormat dmy= new SimpleDateFormat("dd-MM-yyyy");
+    DateFormat ymd=new SimpleDateFormat("yyyy-MM-dd");
+    public void isiDataPasien(Pasien px){
+        txtNorm.setText(px.getNorm());
+        txtNama.setText(px.getNama());
+        txtAlamat.setText(px.getAlamatDomisili());
+        cmbSex.setSelectedIndex(px.getJenisKelamin().equalsIgnoreCase("L")? 0: 1);
+        txtTempatLahir.setText(px.getTempatLahir());
+        txtTglLahir.setText(px.getTanggalLahir()==null?"": dmy.format(px.getTanggalLahir()));
+        txtTelepon.setText(px.getTelepon());
+        txtHp.setText(px.getHp());
+        txtNamaKeluarga.setText(px.getNamaKeluarga());
+        txtTelpKeluarga.setText(px.getTeleponKeluarga());
+        
+        if(px.getTanggalLahir()!=null){
+            Usia usia=pasienDao.getUsia(ymd.format(new Date()), ymd.format(px.getTanggalLahir()));
+            txtUsiaTh.setText(GeneralFunction.intFmt.format(usia.getTahun()));
+            txtUsiaBl.setText(GeneralFunction.intFmt.format(usia.getBulan()));
+        }
+    }
     /**
      * @param args the command line arguments
      */
@@ -272,15 +352,17 @@ public class DlgPasien extends javax.swing.JDialog {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBatal;
+    private javax.swing.JButton btnLookup;
     private javax.swing.JButton btnSimpan;
     private javax.swing.JComboBox cmbSex;
-    private javax.swing.JButton jButton1;
+    private javax.swing.JComboBox cmbTItle;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -325,6 +407,7 @@ public class DlgPasien extends javax.swing.JDialog {
         try {
             Pasien p=new Pasien();
             p.setNorm(txtNorm.getText().equalsIgnoreCase("")? null: txtNorm.getText());
+            p.setTitle(cmbTItle.getSelectedItem().toString());
             p.setNama(txtNama.getText());
             p.setAlamatDomisili(txtAlamat.getText());
             p.setTempatLahir(txtTempatLahir.getText());
@@ -334,20 +417,38 @@ public class DlgPasien extends javax.swing.JDialog {
             p.setHp(txtHp.getText());
             p.setNamaKeluarga(txtNamaKeluarga.getText());
             p.setTeleponKeluarga(txtTelpKeluarga.getText());
-            dao.simpan(p);
+            
+            
             if(srcForm==null){
+                pasienDao.simpan(p);
                 JOptionPane.showMessageDialog(this, "Simpan pasien sukses!");
             }else if(srcForm instanceof FrmReservasi){
-                this.selectedPasien=p;
+                if(selectedPasien!=null && !this.selectedPasien.equals(p)){ //ada perubahan data pasien
+                    pasienDao.simpan(p);
+                }
+                if(this.reservasi==null){
+                    this.selectedPasien=p;
+                }else{
+                    Registrasi reg=new Registrasi();
+                    reg.setKodeDokter(this.reservasi.getKodeDokter());
+                    reg.setNorm(txtNorm.getText());
+                    StatusUpdate st=regDao.save(reg);
+                    if(st.isSukses()){
+                        JOptionPane.showMessageDialog(this, "Registrasi sukses disimpan dengan nomor '"+st.getNo()+"'!");
+                    }else{
+                        JOptionPane.showMessageDialog(this, "Registrasi gagal!");
+                    }
+                    
+                }
             }
             this.dispose();
         } catch (ParseException ex) {
             Logger.getLogger(DlgPasien.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Registrasi gagal!\n"+ex.getMessage());
         }
     }
     
-    private PasienDao dao=new PasienDao();
-
+    
     public void setSrcForm(Object aThis) {
         this.srcForm=aThis;
     }
@@ -355,5 +456,221 @@ public class DlgPasien extends javax.swing.JDialog {
     public void setTglReservasi(Date date) {
         this.tglReservasi=date;
     }
+
+    void setReservasi(Reservasi x) {
+        this.reservasi=x;
+    }
+    
+    private FocusListener txtFocusListener=new FocusListener() {
+        public void focusGained(FocusEvent e) {
+            if(e.getSource() instanceof JTextField || e.getSource() instanceof JFormattedTextField){
+                ((JTextField)e.getSource()).setBackground(Color.YELLOW);
+                if(e.getSource() instanceof JTextField){
+                    ((JTextField)e.getSource()).setSelectionStart(0);
+                    ((JTextField)e.getSource()).setSelectionEnd(((JTextField)e.getSource()).getText().length());
+                }else if(e.getSource() instanceof JFormattedTextField){
+                    ((JFormattedTextField)e.getSource()).setSelectionStart(0);
+                    ((JFormattedTextField)e.getSource()).setSelectionEnd(((JFormattedTextField)e.getSource()).getText().length());
+                }
+
+            }
+        }
+
+        private SimpleDateFormat ymd=new SimpleDateFormat("yyyy-MM-dd");
+        public void focusLost(FocusEvent e) {
+            if(e.getSource().getClass().getSimpleName().equalsIgnoreCase("JTextField")||
+                    e.getSource().getClass().getSimpleName().equalsIgnoreCase("JFormattedTextField")){
+                ((JTextField)e.getSource()).setBackground(Color.WHITE);
+                
+                if(e.getSource().equals(txtTglLahir)){
+                    if(!fn.validateDate(txtTglLahir.getText(), true, "dd-MM-yyyy")){
+                        JOptionPane.showMessageDialog(aThis, "Tanggal lahir tidak valid!");
+                        txtTglLahir.requestFocus();
+                        return;
+                    }
+                    //20-02-2014
+                    String  sTlLahir=txtTglLahir.getText().substring(6, 10)+
+                                     txtTglLahir.getText().substring(2, 6)+
+                                     txtTglLahir.getText().substring(0, 2);
+                    System.out.println("sTlLahir: "+ sTlLahir);
+                    Usia u=pasienDao.getUsia(ymd.format(new Date()) , sTlLahir);
+                    if(u!=null){
+                        txtUsiaTh.setText(fn.intFmt.format(u.getTahun()));
+                        txtUsiaBl.setText(fn.intFmt.format(u.getBulan()));
+                    }
+                            
+                }
+
+           }
+        }
+
+
+    } ;
+
+    public void setNorm(String kode) {
+        txtNorm.setText(kode);
+        btnLookup.setVisible(false);
+    }
+
+    public boolean isSelected() {
+        return this.selected;
+    }
+
+    public String getNama() {
+        return txtNama.getText();
+    }
+
+    public String getNorm() {
+        return txtNorm.getText();
+    }
+
+    public String getAlamat() {
+        return txtAlamat.getText();
+    }
+
+    public class MyKeyListener extends KeyAdapter {
+        @Override
+        public void keyReleased(KeyEvent evt){
+
+        }
+
+        @Override
+        public void keyTyped(KeyEvent evt){
+            
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            Component ct = KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+            int keyKode = evt.getKeyCode();
+            switch(keyKode){
+                case KeyEvent.VK_F2:{
+                    udfSave();
+                    break;
+                }
+
+                case KeyEvent.VK_ENTER : {
+                    if(!(ct instanceof JTable)){
+                        if(btnSimpan.isFocusOwner()){
+                            udfSave();
+                            return;
+                        }
+                        if (!fn.isListVisible()){
+                            Component c = findNextFocus();
+                            if (c==null) return;
+                            if(c.isEnabled())
+                                c.requestFocus();
+                            else{
+                                c = findNextFocus();
+                                if (c!=null) c.requestFocus();;
+                            }
+                        }else{
+                            fn.lstRequestFocus();
+                        }
+                    }
+                    break;
+                }
+                case KeyEvent.VK_DOWN: {
+                    if(ct instanceof JTable){
+//                        if(((JTable)ct).getSelectedRow()==0){
+////                            Component c = findNextFocus();
+////                            if (c==null) return;
+////                            if(c.isEnabled())
+////                                c.requestFocus();
+////                            else{
+////                                c = findNextFocus();
+////                                if (c!=null) c.requestFocus();;
+////                            }
+//                        }
+                    }else{
+                        if (!fn.isListVisible()){
+                            Component c = findNextFocus();
+                            if (c==null) return;
+                            if(c.isEnabled())
+                                c.requestFocus();
+                            else{
+                                c = findNextFocus();
+                                if (c!=null) c.requestFocus();;
+                            }
+                        }else{
+                            fn.lstRequestFocus();
+                        }
+                        break;
+                    }
+                }
+
+                case KeyEvent.VK_UP: {
+                    if(ct instanceof JTable){
+                        if(((JTable)ct).getSelectedRow()==0){
+                            Component c = findPrevFocus();
+                            if (c==null) return;
+                            if(c.isEnabled())
+                                c.requestFocus();
+                            else{
+                                c = findPrevFocus();
+                                if (c!=null) c.requestFocus();;
+                            }
+                        }
+                    }
+                    else{
+                        Component c = findPrevFocus();
+                        if (c==null) return;
+                        if(c.isEnabled())
+                            c.requestFocus();
+                        else{
+//                            c = findPreFocus();
+//                            if (c!=null) c.requestFocus();;
+                        }
+                    }
+                    break;
+                }
+
+                case KeyEvent.VK_ESCAPE:{
+
+                    break;
+                }
+            }
+        }
+
+//        @Override
+//        public void keyReleased(KeyEvent evt){
+//            if(evt.getSource().equals(txtDisc)||evt.getSource().equals(txtQty)||evt.getSource().equals(txtUnitPrice))
+//                GeneralFunction.keyTyped(evt);
+//        }
+
+
+    }
+    public Component findNextFocus() {
+        // Find focus owner
+        Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        Container root = c == null ? null : c.getFocusCycleRootAncestor();
+
+        if (root != null) {
+            FocusTraversalPolicy policy = root.getFocusTraversalPolicy();
+            Component nextFocus = policy.getComponentAfter(root, c);
+            if (nextFocus == null) {
+                nextFocus = policy.getDefaultComponent(root);
+            }
+            return nextFocus;
+        }
+        return null;
+    }
+
+    public Component findPrevFocus() {
+        // Find focus owner
+        Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        Container root = c == null ? null : c.getFocusCycleRootAncestor();
+
+        if (root != null) {
+            FocusTraversalPolicy policy = root.getFocusTraversalPolicy();
+            Component prevFocus = policy.getComponentBefore(root, c);
+            if (prevFocus == null) {
+                prevFocus = policy.getDefaultComponent(root);
+            }
+            return prevFocus;
+        }
+        return null;
+    }
+
     
 }

@@ -318,12 +318,18 @@ public class LoginUser extends javax.swing.JFrame {
         boolean sukses= con!=null;
         
         try{
-            ResultSet rs=con.createStatement().executeQuery("select * from m_user where username='"+txtKasir.getText()+"' "
-                    + "and pwd=md5('"+pass+"')");
+            ResultSet rs=con.createStatement().executeQuery(
+                    "select u.*, coalesce(dok.nama||coalesce(', '||dok.gelar_depan||coalesce(', '||dok.gelar_belakang,''), ''),'') as nama_dokter "
+                    + "from m_user u "
+                    + "left join rm_dokter dok on dok.kode_dokter=u.kode_dokter "
+                    + "where u.username='"+txtKasir.getText()+"' "
+                    + "and u.pwd=md5('"+pass+"')");
             
             if(rs.next()){
                 sukses=true;
                 sUserId=rs.getString("user_id");
+                MainForm.sKodeDokter=rs.getString("kode_dokter");
+                MainForm.sNamaDokter=rs.getString("nama_dokter");
             }else{
                 JOptionPane.showMessageDialog(this, "Silakan masukkan nama user & passwod dengan benar!");
                 txtKasir.requestFocus();

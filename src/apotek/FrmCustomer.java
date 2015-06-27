@@ -10,17 +10,26 @@
  */
 package apotek;
 
+import com.klinik.rm.DlgPasien;
+import java.awt.Component;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import main.GeneralFunction;
+import main.MainForm;
 
 /**
  *
@@ -40,6 +49,9 @@ public class FrmCustomer extends javax.swing.JInternalFrame {
                 btnEdit.setEnabled(jTable1.getSelectedRow()>=0);
             }
         });
+        for (int i = 0; i < jTable1.getColumnCount(); i++) {
+            jTable1.getColumnModel().getColumn(i).setCellRenderer(new MyRowRenderer());
+        }
     }
     
     public void setConn(Connection con){
@@ -48,8 +60,7 @@ public class FrmCustomer extends javax.swing.JInternalFrame {
     
     private void udfNewCustomer() {
         DlgPasien fMaster=new DlgPasien(JOptionPane.getFrameForComponent(this), true);
-        fMaster.setTitle("Pasien/ Customer baru");
-        fMaster.setConn(conn);
+        fMaster.setTitle("Pasien/ Pelanggan baru");
         fMaster.setSrcForm(this);
         fMaster.setVisible(true);
         
@@ -58,10 +69,9 @@ public class FrmCustomer extends javax.swing.JInternalFrame {
     private void udfEditCustomer() {
         if(jTable1.getSelectedRow()<0) return;
         DlgPasien fMaster=new DlgPasien(JOptionPane.getFrameForComponent(this), true);
-        fMaster.setTitle("Ubah data Pasien/ Customer");
-        fMaster.setConn(conn);
+        fMaster.setTitle("Ubah data Pasien/ Pelanggan");
         String kode=jTable1.getValueAt(jTable1.getSelectedRow(), 0).toString();
-        fMaster.setKodeCust(kode);
+        fMaster.setNorm(kode);
         fMaster.setSrcForm(this);
         fMaster.setVisible(true);
         if(fMaster.isSelected()){
@@ -72,13 +82,12 @@ public class FrmCustomer extends javax.swing.JInternalFrame {
     public void udfFilter(String sKode){
         try {
             int posisi=0;
-            String sQry= "SELECT kode_pelanggan, coalesce(nama_pelanggan,'') as nama_pelanggan, "
-                    + "coalesce(alamat,'') as alamat, coalesce(k.nama_kota,'') as kota, coalesce(telepon,'') as telp, "
+            String sQry= "SELECT norm, coalesce(nama,'') as nama, p.tgl_lahir,"
+                    + "coalesce(alamat_domisili,'') as alamat, coalesce(telepon,'') as telp, "
                     + "coalesce(hp, '') as hp "
-                    + "FROM pelanggan p "
-                    + "left join kota k on k.kode_kota=p.kode_kota "
-                    + "where kode_pelanggan||coalesce(nama_pelanggan,'')||coalesce(k.nama_kota,'')|| "
-                    + "coalesce(alamat,'') || coalesce(telepon,'') ilike '%"+txtCari.getText()+"%' "
+                    + "FROM rm_pasien p "
+                    + "where norm||coalesce(nama,'')|| coalesce(to_char(tgl_lahir, 'dd-MM-yyyy'),'')||"
+                    + "coalesce(alamat_domisili,'') || coalesce(telepon,'') ilike '%"+txtCari.getText()+"%' "
                     + "order by 2;";
             System.out.println(sQry);
             ResultSet rs=conn.createStatement().executeQuery(sQry);
@@ -86,12 +95,13 @@ public class FrmCustomer extends javax.swing.JInternalFrame {
             ((DefaultTableModel)jTable1.getModel()).setNumRows(0);
             while(rs.next()){
                 ((DefaultTableModel)jTable1.getModel()).addRow(new Object[]{
-                    rs.getString("kode_pelanggan"),
-                    rs.getString("nama_pelanggan"),
+                    rs.getString("norm"),
+                    rs.getString("nama"),
+                    rs.getDate("tgl_lahir"),
                     rs.getString("alamat"),
                     rs.getString("telp"),
                 });
-                if(sKode.equalsIgnoreCase(rs.getString("kode_pelanggan")))
+                if(sKode.equalsIgnoreCase(rs.getString("norm")))
                     posisi=jTable1.getRowCount()-1;
             }
             rs.close();
@@ -155,11 +165,11 @@ public class FrmCustomer extends javax.swing.JInternalFrame {
 
             },
             new String [] {
-                "Kode", "Nama", "Alamat", "Telepon"
+                "Kode", "Nama", "Tgl. Lahir", "Alamat", "Telepon"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false
+                false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -203,7 +213,7 @@ public class FrmCustomer extends javax.swing.JInternalFrame {
         jToolBar1.add(btnNew);
 
         btnEdit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/Icon/buttons/edit-32.png"))); // NOI18N
-        btnEdit.setText("Update");
+        btnEdit.setText("Edit");
         btnEdit.setEnabled(false);
         btnEdit.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnEdit.setMargin(new java.awt.Insets(2, 2, 2, 2));
@@ -328,4 +338,30 @@ public class FrmCustomer extends javax.swing.JInternalFrame {
             }
         }
     }
+    
+    public class MyRowRenderer extends DefaultTableCellRenderer implements TableCellRenderer{
+        SimpleDateFormat dmyFmt=new SimpleDateFormat(MainForm.formatTgl);
+
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+
+            if(value instanceof Date ){
+                value=dmyFmt.format(value);
+            }else if(value instanceof Double ||value instanceof Integer ||value instanceof Float  ){
+                setHorizontalAlignment(SwingConstants.RIGHT);
+                value=fn.dFmt.format(value);
+            }
+            setFont(table.getFont());
+            if(isSelected){
+                setBackground(table.getSelectionBackground());
+                setForeground(table.getSelectionForeground());
+            }else{
+                setBackground(table.getBackground());
+                setForeground(table.getForeground());
+            }
+
+            setValue(value);
+            return this;
+        }
+    }
+    
 }

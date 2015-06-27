@@ -90,7 +90,8 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
                 "coalesce(b.pr_automatic, true) as pr_automatic, coalesce(b.consignment, false) as consignment, " +
                 "coalesce(b.discontinued, false) as discontinued, coalesce(b.indikasi,'') as indikasi,"
                 + "case when b.kategori='J' then 'JASA' when b.kategori='N' then 'NON INVENTORI' else 'INVENTORI' end as kategori, "
-                + "coalesce(b.paket, false) as paket " +
+                + "coalesce(b.paket, false) as paket, coalesce(b.harga_klinik,0) as harga_klinik, "
+                + "coalesce(b.harga_reseller,0) as harga_reseller, coalesce(b.isi_kemasan,'') as isi_kemasan " +
                 "from barang b " +
                 "left join jenis_barang j on j.kode_jenis=b.kode_jenis " +
                 "left join item_group g on g.group_id=b.group_id " +
@@ -110,9 +111,10 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
                 txtNamaPatent.setText(rs.getString("nama_paten"));
                 cmbSatuan.setSelectedItem(rs.getString("uom_kecil"));
 //                txtDosis.setText(fn.intFmt.format(rs.getFloat("dosis")));
+                txtIsiKemasan.setText(rs.getString("isi_kemasan"));
                 txtMin.setText(fn.intFmt.format(rs.getFloat("min")));
                 txtMax.setText(fn.intFmt.format(rs.getFloat("max")));
-//                txtDiscBox.setText(fn.intFmt.format(rs.getFloat("diskon_box")));
+                txtBaseprice.setText(fn.intFmt.format(rs.getFloat("base_price")));
                 txtGroup.setText(rs.getString("group_id"));
                 lblGroup.setText(rs.getString("group_name"));
                 txtJenis.setText(rs.getString("kode_jenis"));
@@ -124,15 +126,14 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
                 txtKeterangan.setText(rs.getString("keterangan"));
                 txtIndikasi.setText(rs.getString("indikasi"));
                 cmbKategori.setSelectedItem(rs.getString("kategori"));
-                txtBasePrice.setText(fn.intFmt.format(rs.getFloat("base_price")));
-                txtMargin.setText(fn.dFmt.format(rs.getFloat("margin")));
+                txtHargaKlinik.setText(fn.intFmt.format(rs.getFloat("harga_klinik")));
+                txtHargaReseller.setText(fn.intFmt.format(rs.getFloat("harga_reseller")));
 
                 chkDiscontinued.setSelected(rs.getBoolean("discontinued"));
                 chkAutomatic.setSelected(rs.getBoolean("pr_automatic"));
                 chkConsignment.setSelected(rs.getBoolean("consignment"));
                 chkPaket.setSelected(rs.getBoolean("paket"));
                 btnDetailPaket.setVisible(rs.getBoolean("paket"));
-                setHargaJual();
                 listPaket=itemDao.getListPaket(txtProductID.getText());
             }
 
@@ -176,11 +177,6 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
         }
     }
 
-    private void setHargaJual(){
-        double harga=fn.udfGetDouble(txtBasePrice.getText())*(1+fn.udfGetDouble(txtMargin.getText())/100);
-        harga=fn.roundUp(harga, 50D);
-        lblHargaJual.setText(fn.intFmt.format(harga));
-    }
     private boolean cekBeforeSave() {
         boolean st = true;
 //        if (txtProductID.getText().trim().equalsIgnoreCase("")) {
@@ -261,12 +257,11 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
             rs.updateString("item_name", txtNamaBarang.getText());
             rs.updateString("nama_paten", txtNamaPatent.getText());
             rs.updateString("satuan_kecil", cmbSatuan.getSelectedItem().toString());
+            rs.updateString("isi_kemasan", txtIsiKemasan.getText());
             rs.updateString("keterangan", txtKeterangan.getText());
-            rs.updateDouble("base_price", fn.udfGetDouble(txtBasePrice.getText()));
             rs.updateDouble("min", fn.udfGetDouble(txtMin.getText()));
             rs.updateDouble("max", fn.udfGetDouble(txtMax.getText()));
             rs.updateDouble("diskon_box", 0);
-            rs.updateDouble("margin", fn.udfGetDouble(txtMargin.getText()));
             rs.updateBoolean("discontinued", chkDiscontinued.isSelected());
             rs.updateString("barcode", txtBarcode.getText());
             rs.updateBoolean("pr_automatic", chkAutomatic.isSelected());
@@ -277,6 +272,9 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
             rs.updateString("manufaktur_id", txtManufaktur.getText());
             rs.updateString("indikasi", txtIndikasi.getText());
             rs.updateDouble("dosis", 1);
+            rs.updateDouble("base_price", fn.udfGetDouble(txtBaseprice.getText()));
+            rs.updateDouble("harga_klinik", fn.udfGetDouble(txtHargaKlinik.getText()));
+            rs.updateDouble("harga_reseller", fn.udfGetDouble(txtHargaReseller.getText()));
             rs.updateBoolean("cetak_di_faktur", chkCetakInvoice.isSelected());
             rs.updateString("kategori", cmbKategori.getSelectedItem().toString().substring(0, 1));
             rs.updateBoolean("paket", chkPaket.isSelected());
@@ -340,7 +338,7 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
 //              }
 //          }
             
-          if(evt.getSource().equals(txtMin)||evt.getSource().equals(txtMax)||evt.getSource().equals(txtBasePrice)||evt.getSource().equals(txtMargin))
+          if(evt.getSource().equals(txtMin)||evt.getSource().equals(txtMax)||evt.getSource().equals(txtHargaKlinik)||evt.getSource().equals(txtHargaReseller))
               fn.keyTyped(evt);
         }
 
@@ -383,13 +381,13 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
                     }
                     break;
                 }
-                case KeyEvent.VK_ESCAPE:{
-                    if(JOptionPane.showConfirmDialog(null,"Anda Yakin Untuk Keluar?",
-                            "SHS Pharmacy",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
-                        dispose();
-                    }
-                    break;
-                }
+//                case KeyEvent.VK_ESCAPE:{
+//                    if(JOptionPane.showConfirmDialog(null,"Anda Yakin Untuk Keluar?",
+//                            "SHS Pharmacy",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
+//                        dispose();
+//                    }
+//                    break;
+//                }
                 case KeyEvent.VK_F2:{
                     udfSave();
                     break;
@@ -461,6 +459,8 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
                         + "where id||coalesce(nama_manufaktur,'') ilike '%"+txtManufaktur.getText()+"%' order by 2";
 
                 fn.lookup(evt, new Object[]{lblManufaktur}, sQry, txtManufaktur.getWidth()+lblManufaktur.getWidth()+18, 150);
+            }else if(evt.getSource().equals(txtBaseprice) || evt.getSource().equals(txtHargaKlinik)||evt.getSource().equals(txtHargaReseller)){
+                ((JTextField)evt.getSource()).setText(fn.intFmt.format(fn.udfGetInt(((JTextField)evt.getSource()).getText())));
             }
             
         }
@@ -519,9 +519,8 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
             if(e.getSource().getClass().getSimpleName().equalsIgnoreCase("JTextField")||
                     e.getSource().getClass().getSimpleName().equalsIgnoreCase("JFormattedTextField")){
                 ((JTextField)e.getSource()).setBackground(Color.WHITE);
-
-                if(e.getSource().equals(txtBasePrice) || e.getSource().equals(txtMargin)){
-                    setHargaJual();
+                if(e.getSource().equals(txtHargaKlinik) || e.getSource().equals(txtHargaReseller)){
+                    ((JTextField)e.getSource()).setText(fn.intFmt.format(fn.udfGetDouble(((JTextField)e.getSource()).getText())));
                 }
 //                if(e.getSource().equals(txtNoPO) && !fn.isListVisible())
 //                    udfLoadItemFromPO();
@@ -634,18 +633,20 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
         lblBentuk = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
-        txtMargin = new javax.swing.JTextField();
-        lblHargaJual = new javax.swing.JLabel();
+        txtHargaReseller = new javax.swing.JTextField();
         jLabel34 = new javax.swing.JLabel();
         txtManufaktur = new javax.swing.JTextField();
         lblManufaktur = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
         txtIndikasi = new javax.swing.JTextField();
-        txtBasePrice = new javax.swing.JTextField();
+        txtHargaKlinik = new javax.swing.JTextField();
         cmbSatuan = new javax.swing.JComboBox();
         jLabel12 = new javax.swing.JLabel();
         cmbKategori = new javax.swing.JComboBox();
-        jLabel6 = new javax.swing.JLabel();
+        jLabel14 = new javax.swing.JLabel();
+        txtIsiKemasan = new javax.swing.JTextField();
+        jLabel29 = new javax.swing.JLabel();
+        txtBaseprice = new javax.swing.JTextField();
         btnSave = new javax.swing.JButton();
         btnClose = new javax.swing.JButton();
         chkPaket = new javax.swing.JCheckBox();
@@ -709,39 +710,39 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
         jLabel5.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel5.setText("Satuan Kecil");
         jPanel1.add(jLabel5);
-        jLabel5.setBounds(20, 95, 80, 20);
+        jLabel5.setBounds(20, 120, 80, 20);
 
         jLabel7.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel7.setText("Keterangan");
         jPanel1.add(jLabel7);
-        jLabel7.setBounds(20, 320, 80, 20);
+        jLabel7.setBounds(20, 300, 80, 20);
 
         txtKeterangan.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtKeterangan.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(txtKeterangan);
-        txtKeterangan.setBounds(100, 320, 440, 20);
+        txtKeterangan.setBounds(100, 300, 440, 20);
 
         jLabel8.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel8.setText("Min");
         jPanel1.add(jLabel8);
-        jLabel8.setBounds(20, 120, 80, 20);
+        jLabel8.setBounds(20, 145, 80, 20);
 
         txtMin.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtMin.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         txtMin.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(txtMin);
-        txtMin.setBounds(100, 120, 70, 20);
+        txtMin.setBounds(100, 145, 70, 20);
 
         jLabel9.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel9.setText("Max");
         jPanel1.add(jLabel9);
-        jLabel9.setBounds(190, 120, 80, 20);
+        jLabel9.setBounds(190, 145, 80, 20);
 
         txtMax.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtMax.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         txtMax.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(txtMax);
-        txtMax.setBounds(270, 120, 70, 20);
+        txtMax.setBounds(270, 145, 70, 20);
 
         jXPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
@@ -766,9 +767,9 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
         jXPanel1.setBounds(20, 350, 520, 30);
 
         jLabel10.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        jLabel10.setText("Base Price");
+        jLabel10.setText("Harga Klinik");
         jPanel1.add(jLabel10);
-        jLabel10.setBounds(20, 145, 80, 20);
+        jLabel10.setBounds(20, 325, 80, 20);
 
         txtBarcode.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtBarcode.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
@@ -942,47 +943,47 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
         txtGroup.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtGroup.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(txtGroup);
-        txtGroup.setBounds(100, 175, 70, 20);
+        txtGroup.setBounds(100, 170, 70, 20);
 
         lblGroup.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         lblGroup.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(lblGroup);
-        lblGroup.setBounds(170, 175, 260, 20);
+        lblGroup.setBounds(170, 170, 260, 20);
 
         jLabel30.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel30.setText("Group");
         jPanel1.add(jLabel30);
-        jLabel30.setBounds(20, 175, 80, 20);
+        jLabel30.setBounds(20, 170, 80, 20);
 
         jLabel31.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel31.setText("Jenis");
         jPanel1.add(jLabel31);
-        jLabel31.setBounds(20, 200, 80, 20);
+        jLabel31.setBounds(20, 195, 80, 20);
 
         txtJenis.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtJenis.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(txtJenis);
-        txtJenis.setBounds(100, 200, 70, 20);
+        txtJenis.setBounds(100, 195, 70, 20);
 
         lblJenis.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         lblJenis.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(lblJenis);
-        lblJenis.setBounds(170, 200, 260, 20);
+        lblJenis.setBounds(170, 195, 260, 20);
 
         jLabel33.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel33.setText("Bentuk");
         jPanel1.add(jLabel33);
-        jLabel33.setBounds(20, 225, 80, 20);
+        jLabel33.setBounds(20, 220, 80, 20);
 
         txtBentuk.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtBentuk.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(txtBentuk);
-        txtBentuk.setBounds(100, 225, 70, 20);
+        txtBentuk.setBounds(100, 220, 70, 20);
 
         lblBentuk.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         lblBentuk.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(lblBentuk);
-        lblBentuk.setBounds(170, 225, 260, 20);
+        lblBentuk.setBounds(170, 220, 260, 20);
 
         jButton1.setText("...");
         jButton1.setToolTipText("Lookup item");
@@ -1000,80 +1001,93 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
         jButton1.setBounds(240, 17, 45, 23);
 
         jLabel4.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        jLabel4.setText("Magin Harga : ");
+        jLabel4.setText("Harga Reseller");
         jPanel1.add(jLabel4);
-        jLabel4.setBounds(205, 145, 110, 20);
+        jLabel4.setBounds(205, 325, 110, 20);
 
-        txtMargin.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        txtMargin.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        txtMargin.addKeyListener(new java.awt.event.KeyAdapter() {
+        txtHargaReseller.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        txtHargaReseller.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        txtHargaReseller.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        txtHargaReseller.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
-                txtMarginKeyReleased(evt);
+                txtHargaResellerKeyReleased(evt);
             }
         });
-        jPanel1.add(txtMargin);
-        txtMargin.setBounds(315, 145, 40, 22);
-
-        lblHargaJual.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        lblHargaJual.setText("0");
-        jPanel1.add(lblHargaJual);
-        lblHargaJual.setBounds(410, 145, 130, 20);
+        jPanel1.add(txtHargaReseller);
+        txtHargaReseller.setBounds(315, 325, 120, 22);
 
         jLabel34.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel34.setText("Manufaktur");
         jPanel1.add(jLabel34);
-        jLabel34.setBounds(20, 250, 80, 20);
+        jLabel34.setBounds(20, 245, 80, 20);
 
         txtManufaktur.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtManufaktur.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(txtManufaktur);
-        txtManufaktur.setBounds(100, 250, 70, 20);
+        txtManufaktur.setBounds(100, 245, 70, 20);
 
         lblManufaktur.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         lblManufaktur.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(lblManufaktur);
-        lblManufaktur.setBounds(170, 250, 370, 20);
+        lblManufaktur.setBounds(170, 245, 370, 20);
 
         jLabel13.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel13.setText("<html>Kegunaan / <br>Indikasi</html>");
         jPanel1.add(jLabel13);
-        jLabel13.setBounds(20, 290, 80, 30);
+        jLabel13.setBounds(20, 270, 80, 30);
 
         txtIndikasi.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtIndikasi.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.add(txtIndikasi);
-        txtIndikasi.setBounds(100, 290, 440, 20);
+        txtIndikasi.setBounds(100, 270, 440, 20);
 
-        txtBasePrice.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        txtBasePrice.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        txtBasePrice.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        txtBasePrice.addKeyListener(new java.awt.event.KeyAdapter() {
+        txtHargaKlinik.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        txtHargaKlinik.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        txtHargaKlinik.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        txtHargaKlinik.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
-                txtBasePriceKeyReleased(evt);
+                txtHargaKlinikKeyReleased(evt);
             }
         });
-        jPanel1.add(txtBasePrice);
-        txtBasePrice.setBounds(100, 145, 95, 22);
+        jPanel1.add(txtHargaKlinik);
+        txtHargaKlinik.setBounds(100, 325, 95, 22);
 
         cmbSatuan.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         jPanel1.add(cmbSatuan);
-        cmbSatuan.setBounds(100, 95, 170, 20);
+        cmbSatuan.setBounds(100, 120, 170, 20);
 
         jLabel12.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        jLabel12.setText("Kategori : ");
+        jLabel12.setText("Isi kemasan : ");
         jPanel1.add(jLabel12);
-        jLabel12.setBounds(290, 95, 80, 20);
+        jLabel12.setBounds(280, 120, 95, 20);
 
         cmbKategori.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "INVENTORI", "NON INVENTORI", "JASA" }));
         jPanel1.add(cmbKategori);
-        cmbKategori.setBounds(370, 95, 170, 20);
+        cmbKategori.setBounds(100, 95, 170, 20);
 
-        jLabel6.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        jLabel6.setText("%");
-        jPanel1.add(jLabel6);
-        jLabel6.setBounds(360, 145, 25, 20);
+        jLabel14.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        jLabel14.setText("Kategori : ");
+        jPanel1.add(jLabel14);
+        jLabel14.setBounds(20, 95, 80, 20);
 
-        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 550, 390));
+        txtIsiKemasan.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtIsiKemasan.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        txtIsiKemasan.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel1.add(txtIsiKemasan);
+        txtIsiKemasan.setBounds(370, 120, 100, 20);
+
+        jLabel29.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        jLabel29.setText("Baseprice : ");
+        jPanel1.add(jLabel29);
+        jLabel29.setBounds(280, 95, 95, 20);
+
+        txtBaseprice.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtBaseprice.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        txtBaseprice.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel1.add(txtBaseprice);
+        txtBaseprice.setBounds(370, 95, 100, 20);
+
+        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 550, 410));
 
         btnSave.setText("Save (F2)");
         btnSave.setMargin(new java.awt.Insets(2, 2, 2, 2));
@@ -1082,7 +1096,7 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
                 btnSaveActionPerformed(evt);
             }
         });
-        getContentPane().add(btnSave, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 405, 90, 30));
+        getContentPane().add(btnSave, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 425, 90, 30));
 
         btnClose.setText("Close (Esc)");
         btnClose.setMargin(new java.awt.Insets(2, 2, 2, 2));
@@ -1091,7 +1105,7 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
                 btnCloseActionPerformed(evt);
             }
         });
-        getContentPane().add(btnClose, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 405, 100, 30));
+        getContentPane().add(btnClose, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 425, 100, 30));
 
         chkPaket.setText("Paket");
         chkPaket.addItemListener(new java.awt.event.ItemListener() {
@@ -1099,7 +1113,7 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
                 chkPaketItemStateChanged(evt);
             }
         });
-        getContentPane().add(chkPaket, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 410, 90, -1));
+        getContentPane().add(chkPaket, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 430, 90, -1));
 
         btnDetailPaket.setText("Detail Paket");
         btnDetailPaket.setMargin(new java.awt.Insets(2, 2, 2, 2));
@@ -1108,9 +1122,9 @@ public class FrmItemMaster extends javax.swing.JInternalFrame {
                 btnDetailPaketActionPerformed(evt);
             }
         });
-        getContentPane().add(btnDetailPaket, new org.netbeans.lib.awtextra.AbsoluteConstraints(195, 410, 105, -1));
+        getContentPane().add(btnDetailPaket, new org.netbeans.lib.awtextra.AbsoluteConstraints(195, 430, 105, -1));
 
-        setBounds(0, 0, 579, 467);
+        setBounds(0, 0, 579, 494);
     }// </editor-fold>//GEN-END:initComponents
 
 private void formInternalFrameOpened(javax.swing.event.InternalFrameEvent evt) {//GEN-FIRST:event_formInternalFrameOpened
@@ -1133,13 +1147,11 @@ private void btnCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     this.dispose();
 }//GEN-LAST:event_btnCloseActionPerformed
 
-    private void txtBasePriceKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBasePriceKeyReleased
-        setHargaJual();
-    }//GEN-LAST:event_txtBasePriceKeyReleased
+    private void txtHargaKlinikKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtHargaKlinikKeyReleased
+    }//GEN-LAST:event_txtHargaKlinikKeyReleased
 
-    private void txtMarginKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtMarginKeyReleased
-        setHargaJual();
-    }//GEN-LAST:event_txtMarginKeyReleased
+    private void txtHargaResellerKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtHargaResellerKeyReleased
+    }//GEN-LAST:event_txtHargaResellerKeyReleased
 
     private void chkPaketItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkPaketItemStateChanged
         btnDetailPaket.setVisible(chkPaket.isSelected());
@@ -1177,6 +1189,7 @@ private void btnCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
@@ -1192,6 +1205,7 @@ private void btnCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     private javax.swing.JLabel jLabel26;
     private javax.swing.JLabel jLabel27;
     private javax.swing.JLabel jLabel28;
+    private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel30;
     private javax.swing.JLabel jLabel31;
@@ -1199,7 +1213,6 @@ private void btnCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     private javax.swing.JLabel jLabel34;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
@@ -1219,18 +1232,19 @@ private void btnCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     private org.jdesktop.swingx.JXPanel jXPanel2;
     private javax.swing.JLabel lblBentuk;
     private javax.swing.JLabel lblGroup;
-    private javax.swing.JLabel lblHargaJual;
     private javax.swing.JLabel lblJenis;
     private javax.swing.JLabel lblManufaktur;
     private javax.swing.JTextField txtBarcode;
-    private javax.swing.JTextField txtBasePrice;
+    private javax.swing.JTextField txtBaseprice;
     private javax.swing.JTextField txtBentuk;
     private javax.swing.JTextField txtGroup;
+    private javax.swing.JTextField txtHargaKlinik;
+    private javax.swing.JTextField txtHargaReseller;
     private javax.swing.JTextField txtIndikasi;
+    private javax.swing.JTextField txtIsiKemasan;
     private javax.swing.JTextField txtJenis;
     private javax.swing.JTextField txtKeterangan;
     private javax.swing.JTextField txtManufaktur;
-    private javax.swing.JTextField txtMargin;
     private javax.swing.JTextField txtMax;
     private javax.swing.JTextField txtMin;
     private javax.swing.JTextField txtNamaBarang;

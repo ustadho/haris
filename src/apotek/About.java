@@ -36,6 +36,7 @@ public class About extends javax.swing.JDialog {
         jLabel1 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
+        jSeparator1 = new javax.swing.JSeparator();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("About");
@@ -47,21 +48,23 @@ public class About extends javax.swing.JDialog {
                 jButton1ActionPerformed(evt);
             }
         });
-        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(559, 320, 70, -1));
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 210, 80, 30));
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(0, 0, 204));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Sistem Informasi Apotek");
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 5, 620, 35));
+        jLabel1.setText("Sistem Informasi Klinik");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 5, 470, 35));
 
+        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel5.setText("<html> Product Information: <br>\n<b>   Version : </b> 1.0 \n<br>\n<b>Technology : </b> Java SE, PostgreSQL 9.2, iReport 3.0  <br><b>Platform : </b> Windows 7, Xp, 9x, Linux  \n</html>");
-        getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 30, 360, 90));
+        getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 30, 360, 90));
 
-        jLabel6.setText("<html> Program aplikasi ini dibuat dan dikembangkan oleh: \n<br>\n<b>   USTADHO</b><br> \ncak_ust@yahoo.co.id <br>\nMobile : 0856-480-40-778 </html>");
-        getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 260, 345, 90));
+        jLabel6.setText("<html> Program aplikasi ini dibuat dan dikembangkan oleh:  <br> <b>   Ustadho & Sugeng S. Adhi</b><br>  cak_ust@yahoo.co.id <br> Mobile : 0856-480-40-778, 0813-3207-1974 </html>");
+        getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 120, 330, 90));
+        getContentPane().add(jSeparator1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 198, 505, -1));
 
-        setSize(new java.awt.Dimension(653, 391));
+        setSize(new java.awt.Dimension(546, 287));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -91,6 +94,7 @@ public class About extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JSeparator jSeparator1;
     // End of variables declaration//GEN-END:variables
 
 }

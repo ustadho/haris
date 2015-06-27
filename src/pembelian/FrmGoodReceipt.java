@@ -1253,7 +1253,7 @@ public class FrmGoodReceipt extends javax.swing.JInternalFrame {
         if (kodeBarang.length() > 0) {
             TableColumnModel col = tblItem.getColumnModel();
 
-            Barang i = itemDao.getBarangByKode(lookupItem.getKodeBarang());
+            Barang i = itemDao.getBarangByKode(lookupItem.getKodeBarang(), "KLINIK");
             if (i != null) {
 
                 SuppBarang sb = itemDao.getSuppBarang(kodeBarang, txtSupplier.getText());

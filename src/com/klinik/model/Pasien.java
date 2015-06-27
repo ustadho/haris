@@ -13,6 +13,7 @@ import java.util.Date;
  */
 public class Pasien {
     private String norm;
+    private String title;
     private String nama;
     private String jenisKelamin;
     private String tempatLahir;
@@ -29,6 +30,14 @@ public class Pasien {
 
     public void setNorm(String norm) {
         this.norm = norm;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getNama() {

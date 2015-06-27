@@ -22,7 +22,6 @@ import main.MainForm;
  * @author faheem
  */
 public class ItemDao {
-
     public double getSaldo(String item, String gudang) {
         double saldo = 0;
         try {
@@ -39,11 +38,16 @@ public class ItemDao {
         return saldo;
     }
 
-    public Barang getBarangByKode(String kode) {
+    public Barang getBarangByKode(String kode, String tipeHarga) {
         try {
             Barang barang = null;
-            ResultSet rs = MainForm.conn.createStatement().executeQuery("select *, "
-                    + "round_up(base_price*(1+margin/100), " + MainForm.setting.getRoundUp() + ") as harga_jual from barang where item_code='" + kode + "'");
+            String query="select *, "
+                    + "coalesce(fn_get_tarif_item_promo('"+kode+"', '"+tipeHarga+"'),"
+                    + " case when '"+tipeHarga+"'='KLINIK' then coalesce(harga_klinik,0) "
+                                + "else coalesce(harga_reseller,0) end) as harga_jual "
+                    + "from barang where item_code='" + kode + "'";
+            System.out.println(query);
+            ResultSet rs = MainForm.conn.createStatement().executeQuery(query);
             if (rs.next()) {
                 barang = new Barang();
                 barang.setItemCode(rs.getString("item_code"));
@@ -76,7 +80,8 @@ public class ItemDao {
                 barang.setUserIns(rs.getString("user_upd"));
                 barang.setTimeIns(rs.getDate("time_upd"));
                 barang.setOn_order(rs.getDouble("on_order"));
-                barang.setHargaJual(rs.getDouble("harga_jual"));
+                barang.setHargaKlinik(tipeHarga.equalsIgnoreCase("KLINIK")? rs.getDouble("harga_jual"): rs.getDouble("harga_klinik"));
+                barang.setHargaReseller(tipeHarga.equalsIgnoreCase("RESELLER")? rs.getDouble("harga_jual"): rs.getDouble("harga_reseller"));
                 barang.setListPaket(getListPaket(kode));
             }
             rs.close();
@@ -175,5 +180,53 @@ public class ItemDao {
         
     }
     
+    public List<Barang> listItemAktif(){
+        List<Barang> hasil=new ArrayList<>();
+        try {
+            ResultSet rs=MainForm.conn.createStatement().executeQuery("select * from barang where not discontinued order by 2");
+            while(rs.next()){
+                Barang barang=new Barang();
+                barang.setItemCode(rs.getString("item_code"));
+                barang.setItemName(rs.getString("item_name"));
+                barang.setNamaPaten(rs.getString("nama_paten"));
+                barang.setNamaGenerik(rs.getString("nama_generik"));
+                barang.setDosis(rs.getDouble("dosis"));
+                barang.setKeterangan(rs.getString("keterangan"));
+                barang.setSatuanKecil(rs.getString("satuan_kecil"));
+                barang.setKodeJenis(rs.getString("kode_jenis"));
+                barang.setBentukId(rs.getString("bentuk_id"));
+                barang.setGroupId(rs.getString("group_id"));
+                barang.setManufakturId(rs.getString("manufaktur_id"));
+                barang.setMin(rs.getInt("min"));
+                barang.setMax(rs.getInt("max"));
+                barang.setHpp(rs.getDouble("hpp"));
+                barang.setBasePrice(rs.getDouble("base_price"));
+                barang.setMargin(rs.getDouble("margin"));
+                barang.setDiscontinued(rs.getBoolean("discontinued"));
+                barang.setSuppDefault(rs.getString("supp_default"));
+                barang.setPrAutomatic(rs.getBoolean("pr_automatic"));
+                barang.setConsignment(rs.getBoolean("consignment"));
+                barang.setIndikasi(rs.getString("indikasi"));
+                barang.setDiskonBox(rs.getDouble("diskon_box"));
+                barang.setStock(rs.getDouble("stock"));
+                barang.setCetakDiFaktur(rs.getBoolean("cetak_di_faktur"));
+                barang.setUserIns(rs.getString("user_ins"));
+                barang.setTimeIns(rs.getDate("time_ins"));
+
+                barang.setUserIns(rs.getString("user_upd"));
+                barang.setTimeIns(rs.getDate("time_upd"));
+                barang.setOn_order(rs.getDouble("on_order"));
+                barang.setHargaKlinik(rs.getDouble("harga_klinik"));
+                barang.setHargaReseller(rs.getDouble("harga_reseller"));
+//                barang.setListPaket(getListPaket(kode));
+                hasil.add(barang);
+            }
+            rs.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(ItemDao.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return hasil;
+    }
     
 }

@@ -89,24 +89,24 @@ public class DlgLookupItemJual extends javax.swing.JDialog {
             setCursor(new Cursor(Cursor.WAIT_CURSOR));
             ((DefaultTableModel)tblItem.getModel()).setNumRows(0);
             String sQry="select i.item_code, coalesce(i.item_name,'') as item_name, coalesce(i.nama_paten,'') as nama_paten,"
-                    + "coalesce(i.satuan_kecil,'') as satuan_kecil, round_up(base_price*(1+margin/100), "+MainForm.setting.getRoundUp()+") as harga_jual, "
+                    + "coalesce(i.satuan_kecil,'') as satuan_kecil, "
                     + "COALESCE(i.stock,0) as stock, coalesce(i.indikasi,'') as indikasi, "
-                    + "coalesce(g.group_name, '') as group_name " +
+                    + "coalesce(g.group_name, '') as group_name, coalesce(i.harga_klinik,0) as harga_klinik, "
+                    + "coalesce(i.harga_reseller,0) as harga_reseller " +
                     "from barang  i "
                     + "left join item_group g on g.group_id=i.group_id "
                     +"where not discontinued " +
                     "and item_code||coalesce(i.item_name,'')||coalesce(i.nama_paten,'')||coalesce(i.indikasi,'') ilike '%"+txtCari.getText()+"%' " +
                     "order by 2";
-            System.out.println(sQry);
             ResultSet rs=conn.createStatement().executeQuery(sQry);
-            
             while(rs.next()){
                 ((DefaultTableModel)tblItem.getModel()).addRow(new Object[]{
                     rs.getString("item_code"),
                     rs.getString("nama_paten"),
                     rs.getString("item_name"),
                     rs.getString("indikasi"),
-                    rs.getDouble("harga_jual"),
+                    rs.getDouble("harga_klinik"),
+                    rs.getDouble("harga_reseller"),
                     rs.getDouble("stock"),
                     rs.getString("group_name"),
                 });
@@ -172,14 +172,14 @@ public class DlgLookupItemJual extends javax.swing.JDialog {
 
             },
             new String [] {
-                "Kode", "Nama Paten", "Nama Barang", "Indikasi", "Harga", "Stok", "Groups"
+                "Kode", "Nama Paten", "Nama Barang", "Indikasi", "Harga Klinik", "Harga Reseller", "Stok", "Groups"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Double.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Double.class, java.lang.Double.class, java.lang.Object.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {

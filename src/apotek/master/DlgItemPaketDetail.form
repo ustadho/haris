@@ -110,5 +110,15 @@
         </Constraint>
       </Constraints>
     </Component>
+    <Component class="javax.swing.JLabel" name="jLabel2">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&lt;html&gt;&#xa;&lt;b&gt;Ins&lt;/b&gt; &amp;nbsp; : Tambah Item &lt;br&gt;&#xa;&lt;b&gt;Del&lt;/b&gt; &amp;nbsp; : Hapus Item &lt;br&gt;&#xa;&lt;/html&gt;"/>
+      </Properties>
+      <Constraints>
+        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
+          <AbsoluteConstraints x="10" y="295" width="370" height="35"/>
+        </Constraint>
+      </Constraints>
+    </Component>
   </SubComponents>
 </Form>

@@ -25,7 +25,6 @@ import javax.print.*;
  * @author root
  */
 public class printPenjualan {
-
     NumberFormat nf = new DecimalFormat("###,###,###");
     NumberFormat nf1 = new DecimalFormat("###,###,###.##");
     NumberFormat nf_int = new DecimalFormat("###.##");
@@ -75,11 +74,13 @@ public class printPenjualan {
         out.newLine();
         out.write(padString(MainForm.sTelp, 45));
         out.newLine();
-        //out.newLine();        
+        out.newLine();        
 
         out.write(italic());
         out.write(cpi15());
-        out.write(padString("", 15) + padString("KWITANSI", 15));        //6
+        out.write(bold());
+        out.write(padString("", 20) + padString("KWITANSI", 15));        //6
+        out.write(cancelBold());
         out.newLine(); //7
         out.newLine(); //8
         out.write(cancelItalic());
@@ -116,16 +117,16 @@ public class printPenjualan {
             bayar = rsDet.getDouble("bayar");
 
         }
-        out.write(padString("No. Nota", 10) + padString(":", 2) + padString(noPenjualan, 13) + padString(" # " + kasirs, 10)); //97
+        out.write(padString("No. Nota", 10) + padString(":", 2) + padString(rsDet.getString("no_invoice"), 25) + padString(" # " + kasirs, 10)); //97
         out.newLine();
-        out.write(padString("Pasien", 10) + padString(":", 2) + padString(nama, 26)); //97
+        out.write(padString("Pasien", 10) + padString(":", 2) + (nama==null? "": padString(nama, 26))); //97
         out.newLine();
-        out.write(copyString("-", 40)); //11        s
+        out.write(copyString("-", 50)); //11        s
         out.newLine();  //12        
         //out.write(padString("|",2)+padString("No",3)+padString("|",2)+padString("Nama Barang",15)+padString("|",2)+padString("Qty",5)+padString("|",2)+padString("Harga",8)+padString("|",1));
-        out.write(padString("|", 3) + padString("Nama Barang", 21) + padString("|", 2) + padString("Qty", 4) + "|" + padString("Harga", 8) + padString("|", 1));
+        out.write(padString("|", 3) + padString("Nama Barang", 31) + padString("|", 2) + padString("Qty", 4) + "|" + padString("Harga", 8) + padString("|", 1));
         out.newLine(); //14
-        out.write(copyString("-", 40)); //15
+        out.write(copyString("-", 50)); //15
         out.newLine(); //16
         rsDet.beforeFirst();
         int baris = 1;
@@ -142,22 +143,22 @@ public class printPenjualan {
             }
             if (sCara_pembuatan.equalsIgnoreCase("N")) {
                 //out.write(padString("  ",3)+padString(rsDet.getString("nama_barang").trim(),19)+padString(" ",1)+rataKanan(nf_int.format(rs.getFloat("qty_jual")),4)+rataKanan(nf.format(rs.getDouble("jumlah")),16));
-                out.write(padString("  ", 3) + padString(rsDet.getString("nama_barang").trim(), 21)
+                out.write(padString("  ", 3) + padString(rsDet.getString("nama_barang").trim(), 31)
                         + padString(" ", 1) + rataKanan(rsDet.getString("qty_jual"), 5)
                         + padString(" ", 1) + rataKanan(df.format(rsDet.getDouble("sub_total")), 8));
 //                jumlah+=rs.getDouble("jumlah");
             } else {
                 if (!no_r.equalsIgnoreCase(no_r1)) {
                     out.newLine();
-                    out.write(padString("R/", 3) + padString(" ", 21)
+                    out.write(padString("R/", 3) + padString(" ", 31)
                             + padString(" ", 1) + rataKanan(nf_int.format(rsDet.getFloat("qty_r")), 5)
                             + rataKanan(nf.format(rsDet.getDouble("sub_total")), 9));
                     out.newLine();
-                    out.write(padString("  ", 3) + padString(rsDet.getString("nama_barang").trim(), 21)
+                    out.write(padString("  ", 3) + padString(rsDet.getString("nama_barang").trim(), 31)
                             + padString(" ", 1) + rataKanan(nf_int.format(rsDet.getFloat("qty_jual")), 5));
 //                    jumlah+=rs.getDouble("jumlah");
                 } else {
-                    out.write(padString("  ", 3) + padString(rsDet.getString("nama_barang").trim(), 21)
+                    out.write(padString("  ", 3) + padString(rsDet.getString("nama_barang").trim(), 31)
                             + padString(" ", 1) + rataKanan(nf_int.format(rsDet.getFloat("qty_jual")), 5));
                 }
             }
@@ -165,34 +166,23 @@ public class printPenjualan {
             no_r1 = no_r;
             r2 = r1;
             sCara_pembuatan1 = sCara_pembuatan;
+            baris++;
         }
 
-        out.write(copyString("-", 40));
+        out.write(copyString("-", 50));
         out.newLine();
-        out.write(padString("Sub Total", 10) + padString("", 16) + rataKanan(df.format(totalBill), 13));
+        out.write(copyString(" ", 10)+ padString("Sub Total", 10) + padString("", 16) + rataKanan(df.format(totalBill), 13));
         out.newLine();
-        out.write(padString("Discount", 10) + padString("", 16) + rataKanan(df.format(discBill), 13));
+        out.write(copyString(" ", 10)+ padString("Discount", 10) + padString("", 16) + rataKanan(df.format(discBill), 13));
         out.newLine();
-//        float ppn=(TotBayar-discBill)*(fPPN/100);
-        //out.write(padString("",1)+padString("PPN",17)+padString("(+)",5)+rataKanan(df.format(ppn),13)+padString("",2));
-
-//        Statement sTotal=conn.createStatement();
-//        ResultSet rsTotal = sTotal.executeQuery("select * from penjualan_bayar where no_penjualan='"+ noPenjualan +"'");
-//        float dBayar =0;
-//        if(rsTotal.next()){
-//            dBayar = rsTotal.getFloat("bayar");
-//        }
-//        rsTotal.close();
-//        sTotal.close();
-
-        out.write(padString("BAYAR", 10) + padString("", 16) + rataKanan(df.format(bayar), 13));
+        totalBill-=discBill;
+        
+        out.write(copyString(" ", 10)+ padString("Total", 10) + padString("", 16) + rataKanan(df.format(totalBill), 13));
         out.newLine();
-        //out.write(padString("",1)+copyString("-",25));
-        //out.newLine();
-//        float tTotal=TotBayar-(discBill);
-        //tTotal=tTotal+(tTotal*(fPPN/100));        
+        out.write(copyString(" ", 10)+ padString("BAYAR", 10) + padString("", 16) + rataKanan(df.format(bayar), 13));
+        out.newLine();
         kembali = bayar - totalBill;
-        out.write(padString("Kembali", 10) + padString("", 16) + rataKanan(df.format(kembali), 13));
+        out.write(copyString(" ", 10)+ padString("Kembali", 10) + padString("", 16) + rataKanan(df.format(kembali), 13));
         out.newLine();
         Statement stBilang = conn.createStatement();
         ResultSet rsBilang = stBilang.executeQuery("select uang(" + df.format(totalBill).replace(",", "") + "::bigint) as terbilang");
@@ -231,11 +221,18 @@ public class printPenjualan {
          out.write(padString("",18)+padString(sUser,10));
          */
         out.newLine();
-        out.newLine();
-        out.write(padString(".: Terima Kasih Semoga Lekas Sembuh :.", 40));
-        out.newLine();
-        out.write(printCutPaper());
-        out.write(drawKick());
+        out.write(padString(MainForm.sCatatanKwt, 40));
+        if(baris<=14){
+            for (int j = baris; j < 15; j++) {
+                out.newLine();
+            }
+        }else{
+            out.newLine();
+            out.newLine();
+            
+        }
+//        out.write(printCutPaper());
+//        out.write(drawKick());
         out.close();
         return temp.getCanonicalFile();
     }
