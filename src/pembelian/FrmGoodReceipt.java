@@ -947,8 +947,8 @@ public class FrmGoodReceipt extends javax.swing.JInternalFrame {
 
     private void txtSiteKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSiteKeyReleased
         fn.lookup(evt, new Object[]{lblSite},
-                "select site_id, coalesce(site_name,'') as site_name from phar_site "
-                + "where upper(site_id||coalesce(site_name,'')) Like upper('%" + txtSite.getText() + "%') order by 2",
+                "select kode_gudang as kode, coalesce(deskripsi,'') as nama from gudang "
+                + "where upper(kode_gudang||coalesce(deskripsi,'')) Like upper('%" + txtSite.getText() + "%') order by 2",
                 txtSite.getWidth() + lblSite.getWidth(), 300);
 }//GEN-LAST:event_txtSiteKeyReleased
 
